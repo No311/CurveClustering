@@ -36,13 +36,12 @@ public class GUIMain {
         JCheckBox showGridBox = new JCheckBox("Show Grid", true);
         JLabel sliderLabel = new JLabel("Draw Size: 10");
 
-        //frame initialization
         //everything frame
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setMinimumSize(new Dimension(800, 800));
         frame.setResizable(true);
         frame.setVisible(true);
         frame.setLayout(new BorderLayout());
+        frame.setMinimumSize(new Dimension(800,800));
 
         //everything map
         addMapListeners(map, gridField);
@@ -50,7 +49,6 @@ public class GUIMain {
         //everything to do with selections
         selectionPanel.setBorder(BorderFactory.createEtchedBorder());
         JTextField selectionLabel = new JTextField("Trajectories:");
-        selectionLabel.setColumns(frame.getWidth()/36);
         selectionLabel.setEditable(false);
         selectionPanel.add(selectionLabel, BorderLayout.PAGE_START);
         JList<ListItem> selectionList = new JList<>(new ListItem[]{});
@@ -66,7 +64,6 @@ public class GUIMain {
         infoPane.getVerticalScrollBar().setUnitIncrement(32);
         infoPane.getVerticalScrollBar().setPreferredSize(new Dimension(0,0));
         infoPane.setWheelScrollingEnabled(true);
-        infoText.setColumns(frame.getWidth()/36);
         infoText.setEditable(false);
         infoPanel.add(infoPane);
 
@@ -95,14 +92,14 @@ public class GUIMain {
         buttonsPanel.add(muLabel);
         buttonsPanel.add(muField);
         buttonsPanel.add(simplifyButton);
-        bottomPanel.add(buttonsPanel);
         bottomPanel.add(selectionPanel, BorderLayout.LINE_END);
+        bottomPanel.add(buttonsPanel);
 
         //everything backPanel
         backPanel.add(map, BorderLayout.CENTER);
         backPanel.add(topPanel, BorderLayout.PAGE_START);
-        backPanel.add(bottomPanel, BorderLayout.PAGE_END);
         backPanel.add(infoPanel, BorderLayout.LINE_END);
+        backPanel.add(bottomPanel, BorderLayout.PAGE_END);
         backPanel.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -136,6 +133,12 @@ public class GUIMain {
         });
         frame.add(backPanel);
         frame.pack();
+
+        //solving a size bug
+        infoText.setColumns(frame.getWidth()/36);
+        selectionLabel.setColumns(frame.getWidth()/36);
+        bottomPanel.revalidate();
+
     }
 
     private void selectionListInit(TrajectoryPanel map, JList<ListItem> selectionList) {
