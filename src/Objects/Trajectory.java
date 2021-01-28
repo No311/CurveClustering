@@ -7,7 +7,6 @@ import java.util.ArrayList;
 public class Trajectory {
     private ArrayList<TrajPoint> points = new ArrayList<>();
     private File source;
-    private Trajectory Simplified = null;
     private boolean selected;
     private String name;
 
@@ -25,10 +24,6 @@ public class Trajectory {
 
     public void addPoint(TrajPoint point){
         points.add(point);
-    }
-
-    public void insertPoint(TrajPoint point){
-        //to be done.
     }
 
     public void print() {

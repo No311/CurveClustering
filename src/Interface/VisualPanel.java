@@ -15,7 +15,7 @@ class VisualPanel extends JPanel {
     private final int PtU = 24; // if zoom = 1, 24 pixels = 1 unit. Chosen for the convenience of 24.
     private int zoom = 1;
     private boolean showGrid = true;
-    public int step = 24;
+    public int step = 24; //the size of a gridbox.
     final private Color secondaryGridColor = new Color(230, 230, 230);
 
     public VisualPanel() {
