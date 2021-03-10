@@ -8,9 +8,6 @@ import java.awt.geom.Line2D;
 import java.util.ArrayList;
 
 public class TrajectoryPanel extends VisualPanel{
-
-    final private Color trajectoryColor = new Color(67, 104, 163);
-    final private Color pointsColor = new Color(24, 45, 77);
     private double startx = 0;
     private double starty = 0;
     private boolean chosen = false;
@@ -30,17 +27,26 @@ public class TrajectoryPanel extends VisualPanel{
         }
     }
 
+    private double updateX(double startx, TrajPoint p){
+        return (((p.origx-startx)*step)/UtG) + origin.x;
+    }
+
+    private double updateY(double starty, TrajPoint p){
+        return -(((p.origy-starty)*step)/UtG) + origin.y;
+    }
+
+
     private void drawTrajectory(Graphics g, Trajectory t, double startx, double starty) {
         Graphics2D g2 = (Graphics2D) g;
-        int size = (drawsize*step)/UtG;
+        size = (drawsize*step)/UtG;
         Stroke oldStroke = g2.getStroke();
         Stroke lineStroke = new BasicStroke((int) Math.ceil(size/2.0));
         g2.setStroke(lineStroke);
         TrajPoint lastPoint = null;
         g.setColor(pointsColor);
         for (TrajPoint p: t.getPoints()){
-            p.x = (((p.origx-startx)*step)/UtG) + origin.x;
-            p.y = -(((p.origy-starty)*step)/UtG) + origin.y;
+            p.x = updateX(startx, p);
+            p.y = updateY(starty, p);
             if (lastPoint != null){
                 g2.setColor(trajectoryColor);
                 g2.draw(new Line2D.Double(lastPoint.x, lastPoint.y, p.x, p.y));
