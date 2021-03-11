@@ -6,6 +6,8 @@ public class GridPoint extends Point {
     public int row;
     public int actualrow;
     public int column;
+    public double x;
+    public double y;
     public TrajPoint first;
     public TrajPoint second;
 

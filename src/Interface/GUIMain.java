@@ -10,6 +10,7 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.lang.reflect.Array;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ public class GUIMain {
         topPanel.add(menu, BorderLayout.LINE_START);
 
         //listeners
-        addMapListeners(map, gridField, showGridBox);
+        addMapListeners(map, gridField, showGridBox, frame);
         addButtonListeners(frame, map, sliderLabel, selectionList,
                 infoText, muField, simplifyButton, sizeSlider);
         //adding components
@@ -119,17 +120,6 @@ public class GUIMain {
             }
         });
 
-        //frame roundup
-        frame.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyChar() == 'r'){
-                    map.resetOrigins(0, 0);
-                    map.repaint();
-                    frame.requestFocus();
-                }
-            }
-        });
         frame.addWindowStateListener(e -> {
             infoText.setColumns(frame.getWidth()/36);
             selectionLabel.setColumns(frame.getWidth()/36);
@@ -212,10 +202,20 @@ public class GUIMain {
         });
     }
 
-    private void addMapListeners(VisualPanel map, JLabel gridField, JCheckBox showGridBox) {
+    private void addMapListeners(VisualPanel map, JLabel gridField, JCheckBox showGridBox, JFrame frame) {
         showGridBox.addItemListener(e -> {
             map.setShowGrid(e.getStateChange() == ItemEvent.SELECTED);
             map.repaint();
+        });
+        frame.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyChar() == 'r'){
+                    map.resetOrigins(0, 0);
+                    map.repaint();
+                    frame.requestFocus();
+                }
+            }
         });
         map.addMouseWheelListener((MouseWheelEvent e) -> {
             int notches = e.getWheelRotation();
@@ -290,7 +290,7 @@ public class GUIMain {
         open.addActionListener(e -> {
             FileDialog fd = new FileDialog(new JFrame(), "Open Trajectories...", FileDialog.LOAD);
             fd.setMultipleMode(true);
-            fd.setFile("*.txt");
+            fd.setFilenameFilter((dir, name) -> name.matches(".+\\.txt") || name.matches(".+\\.gpx"));
             fd.setVisible(true);
             File[] files = fd.getFiles();
             if (!(files.length == 0)) {
@@ -488,7 +488,7 @@ public class GUIMain {
         JLabel sliderLabel = new JLabel("Draw Size: 1");
         sizeSliderConfig(grid, sliderLabel, sizeSlider);
 
-        addMapListeners(grid, gridField, showGridBox);
+        addMapListeners(grid, gridField, showGridBox, frame);
 
         infoPanel.add(sliderLabel);
         infoPanel.add(sizeSlider);

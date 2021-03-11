@@ -10,6 +10,8 @@ import java.util.ArrayList;
 
 class VisualPanel extends JPanel {
     final Color trajectoryColor = new Color(67, 104, 163);
+    final Color voidPointColor = new Color(245, 47, 48);
+    final Color backGroundColor = new Color(206, 209, 234);
     final Color pointsColor = new Color(24, 45, 77);
     public final Point origin = new Point(0, 0);
     private final Point lastPress = new Point(0, 0);
@@ -133,7 +135,7 @@ class VisualPanel extends JPanel {
 
     }
 
-    public void drawArrow(Graphics g, Graphics2D g2, int origx, int origy, int tarx, int tary, double arrowhead){
+    public void drawArrow(Graphics g, Graphics2D g2, double origx, double origy, double tarx, double tary, double arrowhead){
         g2.draw(new Line2D.Double(origx, origy, tarx, tary));
         double dy = tary - origy;
         double dx = tarx - origx;
@@ -142,8 +144,8 @@ class VisualPanel extends JPanel {
         double firstangle = degrees - (phi/3);
         double secondangle = degrees + (phi/3);
         double ahl = arrowhead/10 + size;
-        int[] x = {tarx, (int) (tarx - ahl * Math.cos(firstangle)), (int) (tarx - ahl * Math.cos(secondangle))};
-        int[] y = {tary, (int) (tary - ahl * Math.sin(firstangle)), (int) (tary - ahl * Math.sin(secondangle))};
+        int[] x = {(int) tarx, (int) (tarx - ahl * Math.cos(firstangle)), (int) (tarx - ahl * Math.cos(secondangle))};
+        int[] y = {(int) tary, (int) (tary - ahl * Math.sin(firstangle)), (int) (tary - ahl * Math.sin(secondangle))};
         g.fillPolygon(x, y, 3);
     }
 
