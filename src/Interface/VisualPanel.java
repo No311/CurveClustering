@@ -5,6 +5,7 @@ import Objects.Trajectory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 
@@ -25,9 +26,11 @@ class VisualPanel extends JPanel {
     final private Color secondaryGridColor = new Color(230, 230, 230);
     public int size = (drawsize*step)/UtG;
 
+
     public VisualPanel() {
         setBorder(BorderFactory.createEtchedBorder());
         setBackground(Color.white);
+        setFocusable(true);
     }
 
     public void paintComponent(Graphics g) {
@@ -135,20 +138,6 @@ class VisualPanel extends JPanel {
 
     }
 
-    public void drawArrow(Graphics g, Graphics2D g2, double origx, double origy, double tarx, double tary, double arrowhead){
-        g2.draw(new Line2D.Double(origx, origy, tarx, tary));
-        double dy = tary - origy;
-        double dx = tarx - origx;
-        double degrees = Math.atan2(dy, dx);
-        double phi = Math.toRadians(40);
-        double firstangle = degrees - (phi/3);
-        double secondangle = degrees + (phi/3);
-        double ahl = arrowhead/10 + size;
-        int[] x = {(int) tarx, (int) (tarx - ahl * Math.cos(firstangle)), (int) (tarx - ahl * Math.cos(secondangle))};
-        int[] y = {(int) tary, (int) (tary - ahl * Math.sin(firstangle)), (int) (tary - ahl * Math.sin(secondangle))};
-        g.fillPolygon(x, y, 3);
-    }
-
     public void setOrigins(int x, int y) {
         origin.x += x;
         origin.y += y;
@@ -177,5 +166,74 @@ class VisualPanel extends JPanel {
         this.drawsize = drawsize;
     }
 
+    public void addMapListeners(VisualPanel map, JLabel gridField, JCheckBox showGridBox) {
+        showGridBox.addItemListener(e -> {
+            map.setShowGrid(e.getStateChange() == ItemEvent.SELECTED);
+            map.repaint();
+        });
+        map.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyChar() == 'r'){
+                    map.resetOrigins(0, 0);
+                    map.repaint();
+                    map.requestFocusInWindow();
+                }
+            }
+        });
+        map.addMouseWheelListener((MouseWheelEvent e) -> {
+            int notches = e.getWheelRotation();
+            int UtG = map.calculateValues(notches, e.getX(), e.getY());
+            gridField.setText("Grid Size = "+UtG);
+            gridField.repaint();
+            map.repaint();
+            map.requestFocusInWindow();
+        });
+
+        addPress(map);
+
+
+        map.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                super.mouseDragged(e);
+                Point last = map.getLastPress();
+                int movedX = e.getX() - last.x;
+                int movedY = e.getY() - last.y;
+                map.setOrigins(movedX, movedY);
+                map.setLastPress(e.getX(), e.getY());
+                map.repaint();
+                map.requestFocusInWindow();
+            }
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                super.mouseMoved(e);
+            }
+        });
+    }
+
+    public void addPress(VisualPanel map) {
+        map.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mousePressed(e);
+                map.setLastPress(e.getX(), e.getY());
+                map.requestFocusInWindow();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                super.mouseReleased(e);
+            }
+        });
+    }
+
+    public void sizeSliderConfig(VisualPanel panel, JLabel sliderLabel, JSlider sizeSlider) {
+        sizeSlider.addChangeListener(e -> {
+            panel.setDrawsize(sizeSlider.getValue());
+            sliderLabel.setText("Draw Size: "+sizeSlider.getValue());
+            panel.repaint();
+        });
+    }
 
 }

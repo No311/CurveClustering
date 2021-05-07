@@ -27,13 +27,9 @@ public class TrajectoryPanel extends VisualPanel{
         }
     }
 
-    private double updateX(double startx, TrajPoint p){
-        return (((p.origx-startx)*step)/UtG) + origin.x;
-    }
+    private double updateX(double startx, TrajPoint p){return (((p.origx-startx)*step)/UtG) + origin.x;}
 
-    private double updateY(double starty, TrajPoint p){
-        return -(((p.origy-starty)*step)/UtG) + origin.y;
-    }
+    private double updateY(double starty, TrajPoint p){return -(((p.origy-starty)*step)/UtG) + origin.y;}
 
 
     private void drawTrajectory(Graphics g, Trajectory t, double startx, double starty) {
@@ -51,9 +47,9 @@ public class TrajectoryPanel extends VisualPanel{
                 g2.setColor(trajectoryColor);
                 g2.draw(new Line2D.Double(lastPoint.x, lastPoint.y, p.x, p.y));
                 g2.setColor(pointsColor);
-                g.fillOval((int) lastPoint.x-(size/2), (int) lastPoint.y-(size/2), size, size);
+                lastPoint.paint(g2, size);
             }
-            g.fillOval((int) p.x-(size/2), (int) p.y-(size/2), size, size);
+            p.paint(g2, size);
             lastPoint = p;
         }
         g2.setStroke(oldStroke);

@@ -1,11 +1,12 @@
 package Interface;
 
-import Objects.GridEdge;
-import Objects.GridPoint;
-import Objects.TrajPoint;
-import Objects.Trajectory;
+import DataStructures.Reachability.Reachability;
+import DataStructures.Reachability.ReachabilityNaive;
+import Objects.*;
 
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -21,9 +22,15 @@ public class DFDGridPanel extends VisualPanel {
     private int gridmul = 10;
     private double startx;
     private double starty;
+    private Reachability reachdata;
+    final Color beforePColor = new Color(113, 20, 219);
+    final Color beforeEColor = new Color(164, 84, 255);
+    final Color afterPColor = new Color(16, 107, 47);
+    final Color afterEColor = new Color(80, 191, 118);
+    final Color selectedColor = new Color(196, 177, 0);
 
 
-    public DFDGridPanel(int threshold, Trajectory first, Trajectory second) {
+    public DFDGridPanel(int threshold, Trajectory first, Trajectory second, int reach, int algo) {
         super();
         super.setZoomable(true);
         super.setShowGrid(false);
@@ -33,6 +40,10 @@ public class DFDGridPanel extends VisualPanel {
         this.threshold = threshold;
         pointmatrix = new GridPoint[first.getPoints().size()][second.getPoints().size()];
         this.rowmax = first.getPoints().size()-1;
+        switch (reach) {
+            case 0 -> reachdata = null;
+            case 1 -> reachdata = new ReachabilityNaive();
+        }
         initDFDGrid();
     }
 
@@ -49,24 +60,13 @@ public class DFDGridPanel extends VisualPanel {
                     pointlist.add(newpoint);
                     boolean diagred = false;
                     if (row > 0){
-                        GridPoint bottompoint = pointmatrix[actualrow+1][column];
-                        if (bottompoint != null){
-                            edges.add(new GridEdge(bottompoint, newpoint, false, dist));
-                            diagred = true;
-                        }
+                        diagred = makeEdge(newpoint, pointmatrix[actualrow+1][column], false, dist);
                     }
                     if (column > 0){
-                        GridPoint leftpoint = pointmatrix[actualrow][column-1];
-                        if (leftpoint != null){
-                            edges.add(new GridEdge(leftpoint, newpoint, false, dist));
-                            diagred = true;
-                        }
+                        diagred = makeEdge(newpoint, pointmatrix[actualrow][column-1], false, dist);
                     }
                     if (row > 0 && column > 0){
-                        GridPoint diagpoint = pointmatrix[actualrow+1][column-1];
-                        if (diagpoint != null){
-                            edges.add(new GridEdge(diagpoint, newpoint, diagred, dist));
-                        }
+                        makeEdge(newpoint, pointmatrix[actualrow+1][column-1], diagred, dist);
                     }
                 }
                 column++;
@@ -74,6 +74,21 @@ public class DFDGridPanel extends VisualPanel {
             row++;
             column = 0;
         }
+        if (reachdata != null){
+            reachdata.preprocess(pointmatrix);
+        }
+    }
+
+    private boolean makeEdge(GridPoint newpoint, GridPoint startpoint, boolean optional, double dist){
+        if (startpoint != null){
+            Arrow arrow = new Arrow(getStandardDist(), size);
+            GridEdge newHorEdge = new GridEdge(startpoint, newpoint, optional, dist, arrow);
+            edges.add(newHorEdge);
+            startpoint.addGridEdge(newHorEdge);
+            newpoint.addGridEdge(newHorEdge);
+            return true;
+        }
+        return false;
     }
 
     public void paintComponent(Graphics g) {
@@ -92,8 +107,6 @@ public class DFDGridPanel extends VisualPanel {
         //draw the actual DFD Grid
         drawEdges(g);
         drawGrid(g);
-
-
     }
 
     private void drawEdges(Graphics g) {
@@ -103,11 +116,17 @@ public class DFDGridPanel extends VisualPanel {
         Stroke lineStroke = new BasicStroke((int) Math.ceil(size/4.0));
         g2.setStroke(lineStroke);
         for (GridEdge edge: edges){
-            double origx = edge.getOrigin().x;
-            double origy = edge.getOrigin().y;
-            double tarx = edge.getTarget().x;
-            double tary = edge.getTarget().y;
-            drawArrow(g, g2, origx, origy, tarx, tary, getStandardDist());
+            if (edge.getOrigin().getSelected() == 0 || edge.getOrigin().getSelected() == 2){
+                g.setColor(afterEColor);
+            } else if (edge.getTarget().getSelected() == 0 || edge.getTarget().getSelected() == 1){
+                g.setColor(beforeEColor);
+            } else {
+                g.setColor(trajectoryColor);
+            }
+            GridPoint o = edge.getOrigin();
+            GridPoint t = edge.getTarget();
+            edge.getRepresentation().updateCoordinates(o.x, o.y, t.x, t.y, getStandardDist(), size);
+            edge.getRepresentation().drawArrow(g2);
         }
         g2.setStroke(oldStroke);
         g.setColor(Color.BLACK);
@@ -120,14 +139,20 @@ public class DFDGridPanel extends VisualPanel {
             for (int j = 0; j < pointmatrix[0].length; j++){
                 GridPoint p = pointmatrix[i][j];
                 if (p != null) {
-                    g.fillOval((int) p.x - (size / 2), (int) p.y - (size / 2), size, size);
+                    switch (p.getSelected()) {
+                        case 0 -> g.setColor(selectedColor);
+                        case 1 -> g.setColor(beforePColor);
+                        case 2 -> g.setColor(afterPColor);
+                        default -> g.setColor(pointsColor);
+                    }
+                    p.paint(g2, size);
                 } else {
                     int vx = gridmul*((j*step)/UtG) + origin.x;
                     int vy = gridmul*(((i - rowmax)*step)/UtG) + origin.y;
                     g.setColor(voidPointColor);
                     g.fillOval(vx - (size / 2), vy - (size / 2), size, size);
-                    g.setColor(pointsColor);
                 }
+                g.setColor(pointsColor);
             }
         }
         g.setColor(Color.BLACK);
@@ -150,9 +175,10 @@ public class DFDGridPanel extends VisualPanel {
     }
 
     public void printMatrixBool(){
-        for (GridPoint[] gridPoints : pointmatrix) {
+        for (int i = 0; i < pointmatrix.length; i++) {
+            System.out.print("Row "+i+":");
             for (int j = 0; j < pointmatrix[0].length; j++) {
-                if (gridPoints[j] != null) {
+                if (pointmatrix[i][j] != null) {
                     System.out.print("1, ");
                 } else {
                     System.out.print(" , ");
@@ -161,5 +187,52 @@ public class DFDGridPanel extends VisualPanel {
             System.out.println();
         }
     }
+
+    public void printEdgesInPoints(){
+        for (GridPoint p: pointlist){
+            p.printGridEdges();
+        }
+    }
+
+    @Override
+    public void addPress(VisualPanel map){
+        map.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mousePressed(e);
+                map.setLastPress(e.getX(), e.getY());
+                map.requestFocusInWindow();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                super.mouseReleased(e);
+                boolean found = false;
+                GridPoint selected = null;
+                for (GridPoint p: pointlist){
+                    if (p.getDrawable().contains(e.getPoint()) && (!found)){
+                        p.setSelected(true);
+                        found = true;
+                        selected = p;
+                    }
+                }
+                if (found){
+                    for (GridPoint p: pointlist){
+                        if (p != selected){
+                            p.reset();
+                        }
+                    }
+                    for (GridPoint b: selected.getReachedFrom()){
+                        b.setBefore(true);
+                    }
+                    for (GridPoint a: selected.getReachable()){
+                        a.setAfter(true);
+                    }
+                }
+                map.repaint();
+            }
+        });
+    }
+
 
 }

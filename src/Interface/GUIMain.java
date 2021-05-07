@@ -1,28 +1,25 @@
 package Interface;
 import Algorithms.Simplification;
-import Objects.TrajPoint;
 import Objects.Trajectory;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.event.*;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.io.FilenameFilter;
-import java.lang.reflect.Array;
-import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Function;
 
 public class GUIMain {
     boolean gridWizardCancel = false;
     ArrayList<Trajectory> loadedTrajectories = new ArrayList<>();
     ArrayList<Trajectory> selectedTrajectories = new ArrayList<>();
     ArrayList<ListItem> ListData = new ArrayList<>();
+    ArrayList<GridTab> gridTabs = new ArrayList<>();
     Simplification simple = new Simplification();
     private int gridAmount = 0;
+    private int framewidth = 800;
+    private int frameheight = 800;
     public void init(){
         //initialization
         JFrame frame = new JFrame("CurveClustering");
@@ -42,9 +39,7 @@ public class GUIMain {
         frame.setResizable(true);
         frame.setVisible(true);
         frame.setLayout(new BorderLayout());
-        frame.setMinimumSize(new Dimension(800,800));
-
-
+        frame.setMinimumSize(new Dimension(framewidth,frameheight));
 
         //everything to do with selections
         selectionPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -83,7 +78,7 @@ public class GUIMain {
         topPanel.add(menu, BorderLayout.LINE_START);
 
         //listeners
-        addMapListeners(map, gridField, showGridBox, frame);
+        map.addMapListeners(map, gridField, showGridBox);
         addButtonListeners(frame, map, sliderLabel, selectionList,
                 infoText, muField, simplifyButton, sizeSlider);
         //adding components
@@ -113,27 +108,25 @@ public class GUIMain {
             @Override
             public void componentResized(ComponentEvent e) {
                 super.componentResized(e);
-                infoText.setColumns(frame.getWidth()/36);
-                selectionLabel.setColumns(frame.getWidth()/72);
+                framewidth = frame.getWidth();
+                frameheight = frame.getHeight();
+                infoText.setColumns(framewidth/36);
+                selectionLabel.setColumns(framewidth/72);
                 backPanel.repaint();
                 frame.requestFocus();
             }
         });
 
         frame.addWindowStateListener(e -> {
-            infoText.setColumns(frame.getWidth()/36);
-            selectionLabel.setColumns(frame.getWidth()/36);
+            framewidth = frame.getWidth();
+            frameheight = frame.getHeight();
+            infoText.setColumns(framewidth/36);
+            selectionLabel.setColumns(framewidth/72);
             backPanel.repaint();
             frame.requestFocus();
         });
         frame.add(backPanel);
         frame.pack();
-
-        //solving a size bug
-        infoText.setColumns(frame.getWidth()/36);
-        selectionLabel.setColumns(frame.getWidth()/36);
-        bottomPanel.revalidate();
-
     }
 
     private void selectionListInit(TrajectoryPanel map, JList<ListItem> selectionList) {
@@ -162,8 +155,15 @@ public class GUIMain {
     private void addButtonListeners(JFrame frame, TrajectoryPanel map, JLabel sliderLabel,
                                     JList<ListItem> selectionList, JTextArea infoText, JTextField muField,
                                     JButton simplifyButton, JSlider sizeSlider) {
-        sizeSliderConfig(map, sliderLabel, sizeSlider);
-        buttonNumberDependency(simplifyButton, muField);
+        map.sizeSliderConfig(map, sliderLabel, sizeSlider);
+        buttonNumberDependency(simplifyButton, muField, (String s) -> {
+            try{
+                Integer.parseInt(s);
+                return true;
+            } catch (NumberFormatException ne){
+                return false;
+            }
+        });
         simplifyButton.addActionListener(e -> {
             infoText.append("Simplifying\n");
             if (selectedTrajectories.isEmpty()){
@@ -190,70 +190,6 @@ public class GUIMain {
             frame.repaint();
             frame.requestFocus();
 
-        });
-
-    }
-
-    private void sizeSliderConfig(VisualPanel panel, JLabel sliderLabel, JSlider sizeSlider) {
-        sizeSlider.addChangeListener(e -> {
-            panel.setDrawsize(sizeSlider.getValue());
-            sliderLabel.setText("Draw Size: "+sizeSlider.getValue());
-            panel.repaint();
-        });
-    }
-
-    private void addMapListeners(VisualPanel map, JLabel gridField, JCheckBox showGridBox, JFrame frame) {
-        showGridBox.addItemListener(e -> {
-            map.setShowGrid(e.getStateChange() == ItemEvent.SELECTED);
-            map.repaint();
-        });
-        frame.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyChar() == 'r'){
-                    map.resetOrigins(0, 0);
-                    map.repaint();
-                    frame.requestFocus();
-                }
-            }
-        });
-        map.addMouseWheelListener((MouseWheelEvent e) -> {
-            int notches = e.getWheelRotation();
-            int UtG = map.calculateValues(notches, e.getX(), e.getY());
-            gridField.setText("Grid Size = "+UtG);
-            gridField.repaint();
-            map.repaint();
-        });
-
-        map.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                super.mousePressed(e);
-                map.setLastPress(e.getX(), e.getY());
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                super.mouseReleased(e);
-            }
-        });
-
-        map.addMouseMotionListener(new MouseAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                super.mouseDragged(e);
-                Point last = map.getLastPress();
-                int movedX = e.getX() - last.x;
-                int movedY = e.getY() - last.y;
-                map.setOrigins(movedX, movedY);
-                map.setLastPress(e.getX(), e.getY());
-                map.repaint();
-            }
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                super.mouseMoved(e);
-
-            }
         });
     }
 
@@ -347,8 +283,8 @@ public class GUIMain {
             if (selectionList.getModel().getSize() == 0){
                 infoText.append("No Trajectories open to create DFD Grid from.\n");
             } else{
-                initDFDGridWizard(selectionList, infoText, frame, mainPane, menu, muField, simplifyButton, sizeSlider,
-                        showGridBox, sliderLabel);
+                initDFDGridWizard(selectionList, infoText, mainPane, menu, muField, simplifyButton, sizeSlider,
+                        sliderLabel);
             }
         });
         mainPane.addChangeListener(e -> closeTab.setEnabled(mainPane.getSelectedIndex() != 0));
@@ -366,20 +302,29 @@ public class GUIMain {
         return menuBar;
     }
 
-    private void initDFDGridWizard(JList<ListItem> selectionList, JTextArea infoText, JFrame mainFrame, JTabbedPane mainPane,
-                                   JMenu menu, JTextField muField, JButton simplifyButton, JSlider sizeSlider,
-                                   JCheckBox showGridBox, JLabel sliderLabel) {
-        gridWizardCancel = true;
+    private void initDFDGridWizard(JList<ListItem> selectionList, JTextArea infoText, JTabbedPane mainPane,
+                                   JMenu menu, JTextField muField, JButton simplifyButton, JSlider sizeSlider, JLabel sliderLabel) {
+        setGridWizardCancel(true);
         menu.setEnabled(false);
         muField.setEnabled(false);
         simplifyButton.setEnabled(false);
         sizeSlider.setEnabled(false);
         sliderLabel.setEnabled(false);
         selectionList.setEnabled(false);
+        ArrayList<JCheckBox> reachBoxes = new ArrayList<>();
+        ArrayList<JCheckBox> algoBoxes = new ArrayList<>();
+        ArrayList<JCheckBox> reachEnabled = new ArrayList<>();
+        ArrayList<JCheckBox> algoEnabled = new ArrayList<>();
 
         JFrame frame = new JFrame("DFD Grid Wizard");
         JPanel backPanel = new JPanel(new BorderLayout());
+        JPanel algoPanel = new JPanel(new BorderLayout());
+        JPanel reachPanel = new JPanel(new BorderLayout());
         JPanel buttonPanel = new JPanel(new WrapLayout());
+        JPanel reachCheckBoxPanel = new JPanel(new WrapLayout());
+        JPanel algoCheckBoxPanel = new JPanel(new WrapLayout());
+        JPanel checkPanels = new JPanel(new BorderLayout());
+        JPanel optionsPanel = new JPanel(new BorderLayout());
 
         frame.addWindowListener(new WindowAdapter()
         {
@@ -424,157 +369,211 @@ public class GUIMain {
         JScrollPane secondScroll = new JScrollPane(secondList);
         secondListPanel.add(secondScroll, BorderLayout.CENTER);
 
+
+        //Everything ReachPanel and ReachCheckBoxPanel
+        JLabel reachLabel = new JLabel("Reachability to prepare:", SwingConstants.CENTER);
+        JCheckBox naiveReach = new JCheckBox("Naive", false);
+        naiveReach.setActionCommand("reachNaive");
+        reachCheckBoxInit(naiveReach, reachBoxes, algoBoxes, reachEnabled);
+        reachPanel.add(reachLabel, BorderLayout.PAGE_START);
+        reachCheckBoxPanel.add(naiveReach);
+        reachPanel.add(reachCheckBoxPanel, BorderLayout.CENTER);
+
+        //Everything AlgoPanel and AlgoCheckBoxPanel
+        JLabel algoLabel = new JLabel("Data Structures to prepare:", SwingConstants.CENTER);
+        JCheckBox naiveAlgo = new JCheckBox("Naive", false);
+        naiveAlgo.setActionCommand("algoNaive");
+        algoCheckBoxInit(naiveAlgo, algoBoxes, algoEnabled);
+        algoPanel.add(algoLabel, BorderLayout.PAGE_START);
+        algoCheckBoxPanel.add(naiveAlgo);
+        algoPanel.add(algoCheckBoxPanel, BorderLayout.CENTER);
+
+
         //Everything ButtonPanel
         JButton confirm = new JButton("Create DFDGrid");
-        JLabel deltaLabel = new JLabel("threshold: ");
+        JLabel deltaLabel = new JLabel("thresholds (separated by comma): ");
         JTextField deltaField = new JTextField("");
         deltaField.setEditable(false);
         deltaField.setColumns(3);
         confirm.setEnabled(false);
+//        String warning = "Warning: All combinations of Reachability Structures,\n" +
+//                "Data Structures and thresholds get processed to their own tab.\n" +
+//                "Do not select too many structures or add too many thresholds at once.";
+//        JTextArea warningLabel = new JTextArea();
+//        warningLabel.setLineWrap(true);
+//        warningLabel.setColumns(20);
+//        warningLabel.setEditable(false);
+//        warningLabel.setText(warning);
         buttonPanel.add(deltaLabel);
         buttonPanel.add(deltaField);
+//        buttonPanel.add(warningLabel);
         buttonPanel.add(confirm);
+
+        //Everything CheckPanels
+        checkPanels.add(reachPanel, BorderLayout.PAGE_START);
+        checkPanels.add(algoPanel, BorderLayout.PAGE_END);
+
+        //Everything OptionsPanel
+        optionsPanel.add(checkPanels, BorderLayout.PAGE_START);
+        optionsPanel.add(buttonPanel, BorderLayout.PAGE_END);
 
         //listeners
         firstList.addListSelectionListener(e -> deltaField.setEditable(firstList.getSelectedIndices().length != 0 &&
                 secondList.getSelectedIndices().length != 0));
         secondList.addListSelectionListener(e -> deltaField.setEditable(firstList.getSelectedIndices().length != 0 &&
                 secondList.getSelectedIndices().length != 0));
-        buttonNumberDependency(confirm, deltaField);
-        confirm.addActionListener(e -> createGridTab(deltaField, firstList, secondList, frame, mainPane, infoText));
+        buttonNumberDependency(confirm, deltaField, (String s) -> !s.equals("") && s.matches("^[\\d\\s,]*$"));
+        confirm.addActionListener(e -> createGridTabs(deltaField, firstList, secondList, frame, mainPane, infoText,
+                reachEnabled, algoEnabled));
         JPanel listsPanel = new JPanel(new BorderLayout());
         listsPanel.add(firstListPanel, BorderLayout.LINE_START);
         listsPanel.add(secondListPanel, BorderLayout.LINE_END);
 
         backPanel.add(listsPanel);
-        backPanel.add(buttonPanel, BorderLayout.PAGE_END);
+
+        backPanel.add(optionsPanel, BorderLayout.PAGE_END);
 
         frame.add(backPanel);
         frame.pack();
     }
 
-    private void createGridTab(JTextField deltaField, JList<ListItem> firstList, JList<ListItem> secondList,
-                               JFrame frame, JTabbedPane mainPane, JTextArea infoText) {
-        JPanel gridPanel = new JPanel(new BorderLayout());
-        DFDGridPanel grid = new DFDGridPanel(Integer.parseInt(deltaField.getText()),
-                firstList.getSelectedValue().getT(), secondList.getSelectedValue().getT());
+    private void reachCheckBoxInit(JCheckBox checkBox, ArrayList<JCheckBox> reachBoxes,
+                                   ArrayList<JCheckBox> algoBoxes, ArrayList<JCheckBox> reachEnabled){
+        reachBoxes.add(checkBox);
+        checkBox.addActionListener(e -> {
+            if (checkBox.isSelected()){
+                reachEnabled.add(checkBox);
+            } else {
+                reachEnabled.remove(checkBox);
+            }
 
-        //everything TrajectoryPanel
-        JPanel trajectoryPanel = new JPanel();
-        trajectoryPanel.setBorder(BorderFactory.createEtchedBorder());
-        String firsttraj = firstList.getSelectedValue().toString();
-        String secondtraj = secondList.getSelectedValue().toString();
-        JTextArea trajectoryLabel = new JTextArea("Trajectories:\n" + "1: " + firsttraj
-                + "\n" + "2: " + secondtraj + "\nThreshold: " + deltaField.getText());
-        trajectoryLabel.setBackground(UIManager.getColor ( "Panel.background" ));
-        trajectoryLabel.setColumns(frame.getWidth()/72);
-        trajectoryLabel.setEditable(false);
-        trajectoryPanel.add(trajectoryLabel);
-
-        //everything BottomPanel
-        JPanel infoPanel = new JPanel(new WrapLayout());
-        infoPanel.setBorder(BorderFactory.createEtchedBorder());
-        JCheckBox showGridBox = new JCheckBox("Show Grid", false);
-        JLabel gridField = new JLabel("Grid Size = 1");
-        JLabel expansionLabel = new JLabel("Grid Expansion: 10");
-        JSlider expansionSlider = new JSlider(1, 20, 10);
-        expansionSlider.addChangeListener(e -> {
-            expansionLabel.setText("Grid Expansion: "+expansionSlider.getValue());
-            grid.setGridmul(expansionSlider.getValue());
-            grid.repaint();
+            if (reachEnabled.isEmpty()){
+                for (JCheckBox algoBox: algoBoxes){
+                    algoBox.setSelected(false);
+                    algoBox.setEnabled(false);
+                }
+            } else {
+                for (JCheckBox algoBox: algoBoxes){
+                    algoBox.setEnabled(true);
+                }
+            }
         });
+    }
 
-        JSlider sizeSlider = new JSlider(1, 20, 1);
-        JLabel sliderLabel = new JLabel("Draw Size: 1");
-        sizeSliderConfig(grid, sliderLabel, sizeSlider);
+    private void algoCheckBoxInit(JCheckBox checkBox, ArrayList<JCheckBox> algoBoxes, ArrayList<JCheckBox> algoEnabled){
+        algoBoxes.add(checkBox);
+        checkBox.setEnabled(false);
+        checkBox.addActionListener(e -> {
+            if (checkBox.isSelected()){
+                algoEnabled.add(checkBox);
+            } else {
+                algoEnabled.remove(checkBox);
+            }
+        });
+    }
 
-        addMapListeners(grid, gridField, showGridBox, frame);
 
-        infoPanel.add(sliderLabel);
-        infoPanel.add(sizeSlider);
-        infoPanel.add(expansionLabel);
-        infoPanel.add(expansionSlider);
-        infoPanel.add(gridField);
-        infoPanel.add(showGridBox);
-
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.add(trajectoryPanel, BorderLayout.LINE_END);
-        bottomPanel.add(infoPanel);
-
-        gridPanel.add(grid, BorderLayout.CENTER);
-        gridPanel.add(bottomPanel, BorderLayout.PAGE_END);
-
-        mainPane.addTab("DFD Grid " + gridAmount, gridPanel);
-        gridAmount++;
-        infoText.append("DFD Grid created between\n     " + firsttraj + " and " + secondtraj + ".\n\n");
-        gridWizardCancel = false;
+    private void createGridTabs(JTextField deltaField, JList<ListItem> firstList, JList<ListItem> secondList,
+                                JFrame frame, JTabbedPane mainPane, JTextArea infoText,
+                                ArrayList<JCheckBox> reachEnabled, ArrayList<JCheckBox> algoEnabled){
+        String deltatext = deltaField.getText().replaceAll("\\s", "");
+        String[] deltas = deltatext.split(",");
+        for (String delta: deltas){
+            String reachString = "no";
+            String algoString = "no";
+            if (!reachEnabled.isEmpty()){
+                for (JCheckBox reach: reachEnabled) {
+                    int reachInt = 0;
+                    switch (reach.getActionCommand()) {
+                        case "reachNaive" -> {
+                            reachInt = 1;
+                            reachString = "naive";
+                            break;
+                        }
+                    }
+                    if (!algoEnabled.isEmpty()) {
+                        for (JCheckBox algo: algoEnabled) {
+                            int algoInt = 0;
+                            switch (algo.getActionCommand()) {
+                                case "algoNaive" -> {
+                                    algoInt = 1;
+                                    algoString = "naive";
+                                    break;
+                                }
+                            }
+                            GridTab newGridTab = new GridTab();
+                            newGridTab.init(delta, firstList, secondList, framewidth, mainPane, infoText, reachInt, algoInt,
+                                    reachString, algoString, gridAmount);
+                            incGridAmount();
+                            gridTabs.add(newGridTab);
+                        }
+                    } else {
+                        GridTab newGridTab = new GridTab();
+                        newGridTab.init(delta, firstList, secondList, framewidth, mainPane, infoText, reachInt, 0,
+                                reachString, algoString, gridAmount);
+                        incGridAmount();
+                        gridTabs.add(newGridTab);
+                    }
+                }
+            } else {
+                GridTab newGridTab = new GridTab();
+                newGridTab.init(delta, firstList, secondList, framewidth, mainPane, infoText, 0, 0,
+                        reachString, algoString, gridAmount);
+                incGridAmount();
+                gridTabs.add(newGridTab);
+            }
+        }
+        setGridWizardCancel(false);
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
     }
 
-    private void buttonNumberDependency(JButton button, JTextField field) {
+
+    public int getGridAmount(){
+        return gridAmount;
+    }
+    public void incGridAmount(){
+        gridAmount++;
+    }
+    public void decGridAmount(){
+        gridAmount--;
+    }
+
+    public boolean getGridWizardCancel(){
+        return gridWizardCancel;
+    }
+    public void setGridWizardCancel(boolean value){
+        gridWizardCancel = value;
+    }
+
+    private void buttonNumberDependency(JButton button, JTextField field, Function<String, Boolean> function) {
         field.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                try {
-                    Integer.parseInt(field.getText());
+                if (function.apply(field.getText())){
                     button.setEnabled(true);
-                }
-                catch (NumberFormatException ne) {
+                } else {
                     button.setEnabled(false);
                 }
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                try {
-                    Integer.parseInt(field.getText());
+                if (function.apply(field.getText())){
                     button.setEnabled(true);
-                }
-                catch (NumberFormatException ne) {
+                } else {
                     button.setEnabled(false);
                 }
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                try {
-                    Integer.parseInt(field.getText());
+                if (function.apply(field.getText())){
                     button.setEnabled(true);
-                }
-                catch (NumberFormatException ne) {
+                } else {
                     button.setEnabled(false);
                 }
             }
         });
     }
-
-
-    static class ListItem {
-        private final String label;
-        private final Trajectory t;
-        private boolean isSelected = true;
-
-        public ListItem(String label, Trajectory t) {
-            this.label = label;
-            this.t = t;
-        }
-
-        public String toString() {
-            return label;
-        }
-
-        public Trajectory getT() {
-            return t;
-        }
-
-        public boolean isSelected() {
-            return isSelected;
-        }
-
-        public void setSelected(boolean selected) {
-            isSelected = selected;
-        }
-    }
-
 }
 

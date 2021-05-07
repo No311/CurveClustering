@@ -1,6 +1,7 @@
 package Objects;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 
 public class TrajPoint extends Point implements Comparable<TrajPoint> {
     public double time;
@@ -8,6 +9,7 @@ public class TrajPoint extends Point implements Comparable<TrajPoint> {
     public double origy;
     public double x;
     public double y;
+    private Ellipse2D drawable;
 
 
     public TrajPoint(double x, double y, double time){
@@ -16,6 +18,7 @@ public class TrajPoint extends Point implements Comparable<TrajPoint> {
         this.time = time;
         this.x = 0;
         this.y = 0;
+        drawable = new Ellipse2D.Double(0,0,0,0);
     }
 
     public void print(){
@@ -24,7 +27,12 @@ public class TrajPoint extends Point implements Comparable<TrajPoint> {
     }
 
     public String toString(){
-        return String.valueOf(origx) + " " + String.valueOf(origy) + " " + String.valueOf(time)+"\n";
+        return origx + " " + origy + " " + time+"\n";
+    }
+
+    public void paint(Graphics2D g2, double size){
+        drawable.setFrame((int) x - (size / 2), (int) y - (size / 2), size, size);
+        g2.fill(drawable);
     }
 
     @Override
