@@ -9,6 +9,8 @@ public class TrajPoint extends Point implements Comparable<TrajPoint> {
     public double origy;
     public double x;
     public double y;
+    private boolean selected;
+    private Color selectedColor = new Color(0,0,0);
     private Ellipse2D drawable;
 
 
@@ -38,6 +40,14 @@ public class TrajPoint extends Point implements Comparable<TrajPoint> {
     @Override
     public int compareTo(TrajPoint p) {
         return java.lang.Double.compare(time, p.time);
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 }
 

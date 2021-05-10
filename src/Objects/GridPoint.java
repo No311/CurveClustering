@@ -15,6 +15,7 @@ public class GridPoint extends Point {
     private boolean selected = false;
     private boolean before = false;
     private boolean after = false;
+    private boolean target = false;
     private final TrajPoint first;
     private final TrajPoint second;
     public GridEdge[] incoming = new GridEdge[3]; // 0 = horizontal, 1 = vertical, 2 = diagonal
@@ -129,16 +130,25 @@ public class GridPoint extends Point {
         after = s;
     }
 
+    public void setTarget(boolean s) {
+        target = s;
+    }
+
     public void reset() {
         selected = false;
         before = false;
         after = false;
+        target = false;
+    }
+
+    public boolean isTarget(){
+        return target;
     }
 
     public int getSelected(){
         if (selected){return 0;}
         else if (before){return 1;}
         else if (after){return 2;}
-        return 3;
+        return -1;
     }
 }

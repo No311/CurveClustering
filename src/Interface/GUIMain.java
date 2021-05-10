@@ -25,14 +25,18 @@ public class GUIMain {
         JFrame frame = new JFrame("CurveClustering");
         JPanel backPanel = new JPanel(new BorderLayout());
         JTabbedPane mainPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
-        TrajectoryPanel map = new TrajectoryPanel();
         JPanel mapPanel = new JPanel(new BorderLayout());
         JPanel bottomPanel = new JPanel(new BorderLayout());
         JPanel buttonsPanel = new JPanel(new WrapLayout());
         JPanel selectionPanel = new JPanel(new BorderLayout());
         JPanel topPanel = new JPanel(new BorderLayout());
         JPanel infoPanel = new JPanel(new BorderLayout());
+
+        //initialization of Map
         JLabel gridField = new JLabel("Grid Size = 1");
+        JCheckBox showGridBox = new JCheckBox("Show Grid", true);
+        JTextField currentField = new JTextField("Current Coordinates: (0, 0)");
+        TrajectoryPanel map = new TrajectoryPanel(gridField, showGridBox, currentField);
 
         //everything frame
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -62,14 +66,14 @@ public class GUIMain {
         infoText.setEditable(false);
         infoPanel.add(infoPane);
 
-        //everything buttons and bottom panel
+        //everything buttons and bottom panel not done during initialization of Map
         JLabel muLabel = new JLabel("mu");
         JTextField muField = new JTextField("1");
         muField.setColumns(3);
         JButton simplifyButton = new JButton("Simplify");
         JSlider sizeSlider = new JSlider(1, 100, 10);
         JLabel sliderLabel = new JLabel("Draw Size: 10");
-        JCheckBox showGridBox = new JCheckBox("Show Grid", true);
+
 
         //everything topPanel
         topPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -77,8 +81,15 @@ public class GUIMain {
                 showGridBox, sliderLabel);
         topPanel.add(menu, BorderLayout.LINE_START);
 
+        //everything coordinatePanel
+        JPanel coordinatePanel = new JPanel(new BorderLayout());
+        coordinatePanel.setBorder(BorderFactory.createEtchedBorder());
+        currentField.setBackground(UIManager.getColor ( "Panel.background" ));
+        currentField.setEditable(false);
+        coordinatePanel.add(currentField, BorderLayout.LINE_START);
+
         //listeners
-        map.addMapListeners(map, gridField, showGridBox);
+        map.addMapListeners(map);
         addButtonListeners(frame, map, sliderLabel, selectionList,
                 infoText, muField, simplifyButton, sizeSlider);
         //adding components
@@ -94,6 +105,7 @@ public class GUIMain {
         bottomPanel.add(buttonsPanel);
 
         //everything mapPanel
+        mapPanel.add(currentField, BorderLayout.PAGE_START);
         mapPanel.add(map, BorderLayout.CENTER);
         mapPanel.add(bottomPanel, BorderLayout.PAGE_END);
 
@@ -488,7 +500,6 @@ public class GUIMain {
                         case "reachNaive" -> {
                             reachInt = 1;
                             reachString = "naive";
-                            break;
                         }
                     }
                     if (!algoEnabled.isEmpty()) {
@@ -498,7 +509,6 @@ public class GUIMain {
                                 case "algoNaive" -> {
                                     algoInt = 1;
                                     algoString = "naive";
-                                    break;
                                 }
                             }
                             GridTab newGridTab = new GridTab();

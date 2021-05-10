@@ -12,28 +12,30 @@ public class ReachabilityNaive implements Reachability {
         this.pointmatrix = pointmatrix;
         reachmatrix = new boolean[pointmatrix.length][pointmatrix[0].length][pointmatrix.length][pointmatrix[0].length];
         for (int trow = 0; trow < pointmatrix.length; trow++){
+            int actualtrow = pointmatrix.length-1-trow;
             for (int tcolumn = pointmatrix[0].length-1; tcolumn >= 0; tcolumn--){
                 for (int orow = 0; orow < pointmatrix.length; orow++){
+                    int actualorow = pointmatrix.length-1-orow;
                     for (int ocolumn = pointmatrix[0].length-1; ocolumn >= 0; ocolumn--){
                         if (pointmatrix[orow][ocolumn] == null || pointmatrix[trow][tcolumn] == null){
-                            reachmatrix[orow][ocolumn][trow][tcolumn] = false;
+                            reachmatrix[actualorow][ocolumn][actualtrow][tcolumn] = false;
 //                            System.out.printf("Origin (%d, %d) or Target (%d, %d) does not exist\n",
 //                                    orow, ocolumn, trow, tcolumn);
                         }
                         else if (orow == trow && ocolumn == tcolumn){
-                            reachmatrix[orow][ocolumn][trow][tcolumn] = true;
+                            reachmatrix[actualorow][ocolumn][actualtrow][tcolumn] = true;
 //                            System.out.printf("Origin = (%d, %d) is Target = (%d, %d)\n",
 //                                    orow, ocolumn, trow, tcolumn);
                         } else {
-//                            System.out.printf("Origin = (%d, %d) and Target = (%d, %d)\n", orow, ocolumn, trow, tcolumn);
+//                            System.out.printf("Origin = (%d, %d) and Target = (%d, %d)\n", actualorow, ocolumn, actualtrow, tcolumn);
                             GridPoint p = pointmatrix[orow][ocolumn];
-                            reachmatrix[orow][ocolumn][trow][tcolumn] = false;
+                            reachmatrix[actualorow][ocolumn][actualtrow][tcolumn] = false;
                             for (GridEdge e: p.outgoing){
                                 if (e != null) {
-                                    if (reachmatrix[e.getTarget().actualrow][e.getTarget().column][trow][tcolumn]) {
-                                        reachmatrix[orow][ocolumn][trow][tcolumn] = true;
+                                    if (reachmatrix[e.getTarget().row][e.getTarget().column][actualtrow][tcolumn]) {
+                                        reachmatrix[actualorow][ocolumn][actualtrow][tcolumn] = true;
 //                                        System.out.printf("Origin = (%d, %d) can reach Target = (%d, %d)\n",
-//                                                orow, ocolumn, trow, tcolumn);
+//                                                actualorow, ocolumn, actualtrow, tcolumn);
                                         p.addReachable(pointmatrix[trow][tcolumn]);
                                         pointmatrix[trow][tcolumn].addReachedFrom(p);
                                     }
@@ -48,7 +50,7 @@ public class ReachabilityNaive implements Reachability {
 
     @Override
     public boolean query(GridPoint start, GridPoint goal) {
-        return false;
+        return reachmatrix[start.row][start.column][goal.row][goal.column];
     }
 
     public void printMatrixBool(){

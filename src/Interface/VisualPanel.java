@@ -24,7 +24,7 @@ class VisualPanel extends JPanel {
     private boolean showGrid = true;
     public int step = 24; //the size of a gridbox.
     final private Color secondaryGridColor = new Color(230, 230, 230);
-    public int size = (drawsize*step)/UtG;
+    public int size = (drawsize*step)/UtG; //size of drawn objects
 
 
     public VisualPanel() {
@@ -166,11 +166,7 @@ class VisualPanel extends JPanel {
         this.drawsize = drawsize;
     }
 
-    public void addMapListeners(VisualPanel map, JLabel gridField, JCheckBox showGridBox) {
-        showGridBox.addItemListener(e -> {
-            map.setShowGrid(e.getStateChange() == ItemEvent.SELECTED);
-            map.repaint();
-        });
+    public void addMapListeners(VisualPanel map) {
         map.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -183,14 +179,24 @@ class VisualPanel extends JPanel {
         });
         map.addMouseWheelListener((MouseWheelEvent e) -> {
             int notches = e.getWheelRotation();
-            int UtG = map.calculateValues(notches, e.getX(), e.getY());
-            gridField.setText("Grid Size = "+UtG);
-            gridField.repaint();
+            map.calculateValues(notches, e.getX(), e.getY());
             map.repaint();
             map.requestFocusInWindow();
         });
 
-        addPress(map);
+        map.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mousePressed(e);
+                map.setLastPress(e.getX(), e.getY());
+                map.requestFocusInWindow();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                super.mouseReleased(e);
+            }
+        });
 
 
         map.addMouseMotionListener(new MouseAdapter() {
@@ -208,22 +214,6 @@ class VisualPanel extends JPanel {
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
-            }
-        });
-    }
-
-    public void addPress(VisualPanel map) {
-        map.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                super.mousePressed(e);
-                map.setLastPress(e.getX(), e.getY());
-                map.requestFocusInWindow();
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                super.mouseReleased(e);
             }
         });
     }
