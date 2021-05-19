@@ -150,9 +150,9 @@ public class DFDGridPanel extends VisualPanel {
         g2.setStroke(lineStroke);
         double rowstart = updateX(0);
         double rowend = updateX(pointmatrix[0].length-1);
-        double row1coord = updateY(pointmatrix.length-(algoquery[0]-1));
-        double row2coord = updateY(pointmatrix.length-(algoquery[1]-1));
-        double colstart = updateY(pointmatrix.length);
+        double row1coord = updateY(pointmatrix.length - 1 - (algoquery[0]));
+        double row2coord = updateY(pointmatrix.length - 1 - (algoquery[1]));
+        double colstart = updateY(pointmatrix.length-1);
         double colend = updateY(0);
         double pcoord = updateX(algoquery[2]);
         g.setColor(queryRow1Color);
@@ -426,5 +426,8 @@ public class DFDGridPanel extends VisualPanel {
         else if (querymode == 2){
             Arrays.fill(algoquery, -1);
         }
+    }
+    public int getQuerymode(){
+        return querymode;
     }
 }

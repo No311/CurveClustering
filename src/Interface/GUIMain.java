@@ -3,19 +3,24 @@ import Algorithms.Simplification;
 import Objects.Trajectory;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class GUIMain {
-    boolean gridWizardCancel = false;
+    boolean wizardCancel = false;
     ArrayList<Trajectory> loadedTrajectories = new ArrayList<>();
     ArrayList<Trajectory> selectedTrajectories = new ArrayList<>();
+    Trajectory editable = null;
     ArrayList<ListItem> ListData = new ArrayList<>();
     ArrayList<GridTab> gridTabs = new ArrayList<>();
+    ArrayList<JComponent> interactables = new ArrayList<>();
     Simplification simple = new Simplification();
     private int gridAmount = 0;
     private int framewidth = 800;
@@ -27,16 +32,24 @@ public class GUIMain {
         JTabbedPane mainPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
         JPanel mapPanel = new JPanel(new BorderLayout());
         JPanel bottomPanel = new JPanel(new BorderLayout());
-        JPanel buttonsPanel = new JPanel(new WrapLayout());
+        JPanel buttonsPanel = new JPanel(new GridLayout(2,1));
+        JPanel mapButtonsPanel = new JPanel(new WrapLayout());
+        JPanel funcButtonsPanel = new JPanel(new WrapLayout());
+        JPanel trajButtonsPanel = new JPanel(new WrapLayout());
+        JPanel muButtonsPanel = new JPanel(new WrapLayout());
+        JPanel panelPanel = new JPanel(new BorderLayout());
         JPanel selectionPanel = new JPanel(new BorderLayout());
+        JPanel editPanel = new JPanel(new BorderLayout());
         JPanel topPanel = new JPanel(new BorderLayout());
         JPanel infoPanel = new JPanel(new BorderLayout());
 
         //initialization of Map
+        JCheckBox editBox = new JCheckBox("Editing");
+        editBox.setEnabled(false);
         JLabel gridField = new JLabel("Grid Size = 1");
         JCheckBox showGridBox = new JCheckBox("Show Grid", true);
         JTextField currentField = new JTextField("Current Coordinates: (0, 0)");
-        TrajectoryPanel map = new TrajectoryPanel(gridField, showGridBox, currentField);
+        TrajectoryPanel map = new TrajectoryPanel(gridField, showGridBox, currentField, editBox);
 
         //everything frame
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -47,7 +60,7 @@ public class GUIMain {
 
         //everything to do with selections
         selectionPanel.setBorder(BorderFactory.createEtchedBorder());
-        JTextField selectionLabel = new JTextField("Trajectories:");
+        JTextField selectionLabel = new JTextField("Selected Trajectories:");
         selectionLabel.setEditable(false);
         selectionPanel.add(selectionLabel, BorderLayout.PAGE_START);
         JList<ListItem> selectionList = new JList<>(new ListItem[]{});
@@ -55,6 +68,21 @@ public class GUIMain {
         JScrollPane selectionScroll = new JScrollPane(selectionList);
         selectionScroll.setPreferredSize(new Dimension(0, 100));
         selectionPanel.add(selectionScroll, BorderLayout.PAGE_END);
+
+        //everything to do with editables
+        editPanel.setBorder(BorderFactory.createEtchedBorder());
+        JTextField editLabel = new JTextField("Editable Trajectory:");
+        editLabel.setEditable(false);
+        editPanel.add(editLabel, BorderLayout.PAGE_START);
+        JList<ListItem> editList = new JList<>(new ListItem[]{});
+        editListInit(map, editList, editBox);
+        JScrollPane editScroll = new JScrollPane(editList);
+        editScroll.setPreferredSize(new Dimension(0, 100));
+        editPanel.add(editScroll, BorderLayout.PAGE_END);
+
+        //everything panelPanel
+        panelPanel.add(selectionPanel, BorderLayout.LINE_START);
+        panelPanel.add(editPanel, BorderLayout.LINE_END);
 
         //everything infoPanel
         infoPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -77,8 +105,8 @@ public class GUIMain {
 
         //everything topPanel
         topPanel.setBorder(BorderFactory.createEtchedBorder());
-        JMenuBar menu = MenuInit(infoText, frame, mainPane, map, selectionList, muField, simplifyButton, sizeSlider,
-                showGridBox, sliderLabel);
+        JMenuBar menu = MenuInit(infoText, frame, mainPane, map, selectionList, editList, muField, simplifyButton,
+                sizeSlider, sliderLabel);
         topPanel.add(menu, BorderLayout.LINE_START);
 
         //everything coordinatePanel
@@ -90,18 +118,28 @@ public class GUIMain {
 
         //listeners
         map.addMapListeners(map);
-        addButtonListeners(frame, map, sliderLabel, selectionList,
+        addButtonListeners(frame, map, sliderLabel, selectionList, editList,
                 infoText, muField, simplifyButton, sizeSlider);
+
         //adding components
+        mapButtonsPanel.setBorder(BorderFactory.createEtchedBorder());
+        funcButtonsPanel.setBorder(BorderFactory.createEtchedBorder());
+        trajButtonsPanel.setBorder(BorderFactory.createEtchedBorder());
+        muButtonsPanel.setBorder(BorderFactory.createEtchedBorder());
         buttonsPanel.setBorder(BorderFactory.createEtchedBorder());
-        buttonsPanel.add(sliderLabel);
-        buttonsPanel.add(sizeSlider);
-        buttonsPanel.add(gridField);
-        buttonsPanel.add(showGridBox);
-        buttonsPanel.add(muLabel);
-        buttonsPanel.add(muField);
-        buttonsPanel.add(simplifyButton);
-        bottomPanel.add(selectionPanel, BorderLayout.LINE_END);
+        mapButtonsPanel.add(sliderLabel);
+        mapButtonsPanel.add(sizeSlider);
+        mapButtonsPanel.add(gridField);
+        mapButtonsPanel.add(showGridBox);
+        muButtonsPanel.add(muLabel);
+        muButtonsPanel.add(muField);
+        muButtonsPanel.add(simplifyButton);
+        trajButtonsPanel.add(editBox);
+        funcButtonsPanel.add(muButtonsPanel);
+        funcButtonsPanel.add(trajButtonsPanel);
+        buttonsPanel.add(mapButtonsPanel);
+        buttonsPanel.add(funcButtonsPanel);
+        bottomPanel.add(panelPanel, BorderLayout.LINE_END);
         bottomPanel.add(buttonsPanel);
 
         //everything mapPanel
@@ -120,40 +158,55 @@ public class GUIMain {
             @Override
             public void componentResized(ComponentEvent e) {
                 super.componentResized(e);
-                framewidth = frame.getWidth();
-                frameheight = frame.getHeight();
-                infoText.setColumns(framewidth/36);
-                selectionLabel.setColumns(framewidth/72);
-                backPanel.repaint();
-                frame.requestFocus();
+                updateSize(frame, infoText, selectionLabel, editLabel, backPanel);
             }
         });
 
         frame.addWindowStateListener(e -> {
-            framewidth = frame.getWidth();
-            frameheight = frame.getHeight();
-            infoText.setColumns(framewidth/36);
-            selectionLabel.setColumns(framewidth/72);
-            backPanel.repaint();
-            frame.requestFocus();
+            updateSize(frame, infoText, selectionLabel, editLabel, backPanel);
         });
         frame.add(backPanel);
         frame.pack();
+
+        //everything interactables
+        interactables.add(menu);
+        interactables.add(muField);
+        interactables.add(simplifyButton);
+        interactables.add(selectionList);
+        interactables.add(editList);
+        interactables.add(editBox);
+    }
+
+    public void disableInteractables(){
+        for (JComponent i: interactables){
+            i.setEnabled(false);
+        }
+    }
+
+    public void enableInteractables(){
+        for (JComponent i: interactables){
+            i.setEnabled(true);
+        }
+    }
+
+    private void updateSize(JFrame frame, JTextArea infoText, JTextField selectionLabel, JTextField editLabel, JPanel backPanel) {
+        framewidth = frame.getWidth();
+        frameheight = frame.getHeight();
+        infoText.setColumns(framewidth / 36);
+        selectionLabel.setColumns(framewidth / 72);
+        editLabel.setColumns(framewidth / 72);
+        backPanel.repaint();
+        frame.requestFocus();
     }
 
     private void selectionListInit(TrajectoryPanel map, JList<ListItem> selectionList) {
-        selectionList.setCellRenderer(new DefaultListCellRenderer() {
-            public Component getListCellRendererComponent(JList<ListItem> list, ListItem value, int index, boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                    setText(value.toString());
-                    return this;
-                }
-        });
+        setCellRenderer(selectionList);
         selectionList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         selectionList.addListSelectionListener(e -> {
             ArrayList<Trajectory> newselected = new ArrayList<>();
+            List<ListItem> selectedValues = selectionList.getSelectedValuesList();
             for (ListItem i: ListData){
-                boolean selected = selectionList.getSelectedValuesList().contains(i);
+                boolean selected = selectedValues.contains(i);
                 i.getT().setSelected(selected);
                 if (selected){
                     newselected.add(i.getT());
@@ -164,11 +217,69 @@ public class GUIMain {
         });
     }
 
+    private void editListInit(TrajectoryPanel map, JList<ListItem> editList, JCheckBox editBox) {
+        setCellRenderer(editList);
+        editList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        editList.addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()){
+                return;
+            } else{
+                ListItem selected = editList.getSelectedValue();
+                if (selected != null){
+                    for (ListItem i: ListData){
+                        i.getT().setEditable(false);
+                    }
+                    Trajectory selT = selected.getT();
+                    selT.setEditable(true);
+                    editable = selT;
+                    map.setCurrentEdit(editable);
+                    editBox.setEnabled(true);
+                } else {
+                    editable = null;
+                    map.setCurrentEdit(editable);
+                    editBox.setSelected(false);
+                    editBox.setEnabled(false);
+                }
+            }
+            map.repaint();
+        });
+        editList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mousePressed(e);
+                JList<ListItem> editList = (JList<ListItem>) e.getSource();
+                int index = editList.locationToIndex(e.getPoint());
+                if (index != -1) {
+                    ListItem selected = editList.getModel().getElementAt(index);
+                    if (selected.getT().getEditable()){
+                        selected.getT().setEditable(false);
+                        editList.clearSelection();
+                        editable = null;
+                        map.setCurrentEdit(editable);
+                        editBox.setSelected(false);
+                        editBox.setEnabled(false);
+                    }
+                }
+            }
+        });
+    }
+
+    private void setCellRenderer(JList<ListItem> list){
+        list.setCellRenderer(new DefaultListCellRenderer() {
+            public Component getListCellRendererComponent(JList<ListItem> list, ListItem value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                setText(value.toString());
+                return this;
+            }
+        });
+    }
+
     private void addButtonListeners(JFrame frame, TrajectoryPanel map, JLabel sliderLabel,
-                                    JList<ListItem> selectionList, JTextArea infoText, JTextField muField,
+                                    JList<ListItem> selectionList, JList<ListItem> editList,
+                                    JTextArea infoText, JTextField muField,
                                     JButton simplifyButton, JSlider sizeSlider) {
         map.sizeSliderConfig(map, sliderLabel, sizeSlider);
-        buttonNumberDependency(simplifyButton, muField, (String s) -> {
+        buttonDependency(simplifyButton, muField, (String s) -> {
             try{
                 Integer.parseInt(s);
                 return true;
@@ -196,7 +307,7 @@ public class GUIMain {
                 lengthcount++;
             }
             selectedTrajectories.addAll(simplified);
-            updateSelected(oldSelected, oldlength, lengthcount, selectionList);
+            updateSelected(oldSelected, oldlength, lengthcount, selectionList, editList);
             infoText.append("Simplified Trajectories.\n\n");
             map.updateDrawables(loadedTrajectories);
             frame.repaint();
@@ -205,36 +316,43 @@ public class GUIMain {
         });
     }
 
-    public void updateSelectionList(JList<ListItem> selectionList) {
+    public void updateList(JList<ListItem> selectionList) {
         ListItem[] newData = new ListItem[ListData.size()];
-        int count = 0;
-        for (ListItem i : ListData) {
+        for (int count = 0; count < ListData.size(); count++) {
             newData[count] = ListData.get(count);
-            count++;
         }
         selectionList.setListData(newData);
     }
 
-    private void updateSelected(int[] oldSelected, int oldlength, int lengthcount, JList<ListItem> selectionList) {
-        updateSelectionList(selectionList);
+    private void updateSelected(int[] oldSelected, int oldlength, int lengthcount, JList<ListItem> selectionList,
+                                JList<ListItem> editList) {
+        int oldEdit = editList.getSelectedIndex();
+        updateList(selectionList);
+        updateList(editList);
         int[] newSelection = new int[oldSelected.length + lengthcount];
         System.arraycopy(oldSelected, 0, newSelection, 0, oldSelected.length);
         for (int i = 0; i < newSelection.length - oldSelected.length; i++) {
             newSelection[oldSelected.length + i] = oldlength + i;
         }
         selectionList.setSelectedIndices(newSelection);
+        editList.setSelectedIndex(oldEdit);
     }
 
     public JMenuBar MenuInit(JTextArea infoText, JFrame frame, JTabbedPane mainPane, TrajectoryPanel map,
-                             JList<ListItem> selectionList, JTextField muField, JButton simplifyButton,
-                             JSlider sizeSlider, JCheckBox showGridBox, JLabel sliderLabel){
+                             JList<ListItem> selectionList, JList<ListItem> editList, JTextField muField,
+                             JButton simplifyButton, JSlider sizeSlider, JLabel sliderLabel){
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("Menu");
+        JMenuItem startnew = new JMenuItem("New Trajectory...");
         JMenuItem open = new JMenuItem("Open Trajectories...");
         JMenuItem save = new JMenuItem("Save Trajectories...");
         JMenuItem close = new JMenuItem("Close Trajectories");
         JMenuItem DFDGrid = new JMenuItem("Create DFD Grid");
         JMenuItem closeTab = new JMenuItem("Close Tab");
+        startnew.addActionListener(e -> {
+            infoText.append("Creating New Trajectory...\n");
+            initNewTrajWizard(infoText, map, frame, selectionList, editList);
+        });
         open.addActionListener(e -> {
             FileDialog fd = new FileDialog(new JFrame(), "Open Trajectories...", FileDialog.LOAD);
             fd.setMultipleMode(true);
@@ -256,7 +374,7 @@ public class GUIMain {
                         lengthcount++;
                     }
                 }
-                updateSelected(oldSelected, oldlength, lengthcount, selectionList);
+                updateSelected(oldSelected, oldlength, lengthcount, selectionList, editList);
                 infoText.append("Opened files.\n\n");
                 map.updateDrawables(loadedTrajectories);
                 frame.repaint();
@@ -284,7 +402,8 @@ public class GUIMain {
                 loadedTrajectories.removeAll(selectedTrajectories);
                 map.updateDrawables(loadedTrajectories);
                 ListData.removeAll(selectionList.getSelectedValuesList());
-                updateSelectionList(selectionList);
+                updateList(selectionList);
+                updateList(editList);
                 infoText.append("Closed files.\n\n");
                 frame.repaint();
                 frame.requestFocus();
@@ -295,8 +414,7 @@ public class GUIMain {
             if (selectionList.getModel().getSize() == 0){
                 infoText.append("No Trajectories open to create DFD Grid from.\n");
             } else{
-                initDFDGridWizard(selectionList, infoText, mainPane, menu, muField, simplifyButton, sizeSlider,
-                        sliderLabel);
+                initDFDGridWizard(selectionList, infoText, mainPane);
             }
         });
         mainPane.addChangeListener(e -> closeTab.setEnabled(mainPane.getSelectedIndex() != 0));
@@ -305,6 +423,7 @@ public class GUIMain {
             mainPane.remove(mainPane.getSelectedIndex());
 
         });
+        menu.add(startnew);
         menu.add(open);
         menu.add(save);
         menu.add(close);
@@ -314,15 +433,9 @@ public class GUIMain {
         return menuBar;
     }
 
-    private void initDFDGridWizard(JList<ListItem> selectionList, JTextArea infoText, JTabbedPane mainPane,
-                                   JMenu menu, JTextField muField, JButton simplifyButton, JSlider sizeSlider, JLabel sliderLabel) {
-        setGridWizardCancel(true);
-        menu.setEnabled(false);
-        muField.setEnabled(false);
-        simplifyButton.setEnabled(false);
-        sizeSlider.setEnabled(false);
-        sliderLabel.setEnabled(false);
-        selectionList.setEnabled(false);
+    private void initDFDGridWizard(JList<ListItem> selectionList, JTextArea infoText, JTabbedPane mainPane) {
+        setWizardCancel(true);
+        disableInteractables();
         ArrayList<JCheckBox> reachBoxes = new ArrayList<>();
         ArrayList<JCheckBox> algoBoxes = new ArrayList<>();
         ArrayList<JCheckBox> reachEnabled = new ArrayList<>();
@@ -343,15 +456,10 @@ public class GUIMain {
             @Override
             public void windowClosing(WindowEvent e)
             {
-                if (gridWizardCancel) {
+                if (wizardCancel) {
                     infoText.append("Process cancelled.\n\n");
                 }
-                menu.setEnabled(true);
-                muField.setEnabled(true);
-                simplifyButton.setEnabled(true);
-                sizeSlider.setEnabled(true);
-                sliderLabel.setEnabled(true);
-                selectionList.setEnabled(true);
+                enableInteractables();
                 e.getWindow().dispose();
             }
         });
@@ -434,7 +542,7 @@ public class GUIMain {
                 secondList.getSelectedIndices().length != 0));
         secondList.addListSelectionListener(e -> deltaField.setEditable(firstList.getSelectedIndices().length != 0 &&
                 secondList.getSelectedIndices().length != 0));
-        buttonNumberDependency(confirm, deltaField, (String s) -> !s.equals("") && s.matches("^[\\d\\s,]*$"));
+        buttonDependency(confirm, deltaField, (String s) -> !s.equals("") && s.matches("^[\\d\\s,]*$"));
         confirm.addActionListener(e -> createGridTabs(deltaField, firstList, secondList, frame, mainPane, infoText,
                 reachEnabled, algoEnabled));
         JPanel listsPanel = new JPanel(new BorderLayout());
@@ -447,6 +555,70 @@ public class GUIMain {
 
         frame.add(backPanel);
         frame.pack();
+    }
+    private void initNewTrajWizard(JTextArea infoText, TrajectoryPanel map, JFrame frame,
+                                   JList<ListItem> selectionList, JList<ListItem> editList) {
+        setWizardCancel(true);
+        disableInteractables();
+
+        JFrame wFrame = new JFrame("New Trajectory Wizard");
+        JPanel backPanel = new JPanel(new BorderLayout());
+        JPanel namePanel = new JPanel(new BorderLayout());
+        JPanel buttonPanel = new JPanel(new BorderLayout());
+
+        wFrame.addWindowListener(new WindowAdapter()
+        {
+            @Override
+            public void windowClosing(WindowEvent e)
+            {
+                if (wizardCancel) {
+                    infoText.append("Process cancelled.\n\n");
+                }
+                enableInteractables();
+                e.getWindow().dispose();
+            }
+        });
+        wFrame.setResizable(false);
+        wFrame.setVisible(true);
+        wFrame.setMinimumSize(new Dimension(400, 0));
+        wFrame.setLayout(new BorderLayout());
+
+        JLabel nameLabel = new JLabel("Name:", SwingConstants.CENTER);
+        JTextField nameField = new JTextField();
+        JButton confirmButton = new JButton("Confirm Name");
+        confirmButton.setEnabled(false);
+        buttonDependency(confirmButton, nameField, (String s) -> !s.equals("") && s.matches("^[\\w]*$"));
+        confirmButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String name = nameField.getText();
+                Trajectory newTrajectory = new Trajectory(name);
+                int[] oldSelected = selectionList.getSelectedIndices();
+                int oldlength = ListData.size();
+                int lengthcount = 0;
+                loadedTrajectories.add(newTrajectory);
+                selectedTrajectories.add(newTrajectory);
+                ListData.add(new ListItem(newTrajectory.getName(), newTrajectory));
+                updateSelected(oldSelected, oldlength, 1, selectionList, editList);
+                editList.setSelectedIndex(oldlength);
+                infoText.append("New Trajectory "+name+" created.\n\n");
+                map.updateDrawables(loadedTrajectories);
+                frame.repaint();
+                enableInteractables();
+                setWizardCancel(false);
+                wFrame.dispatchEvent(new WindowEvent(wFrame, WindowEvent.WINDOW_CLOSING));
+                frame.requestFocus();
+            }
+        });
+
+        namePanel.add(nameLabel, BorderLayout.PAGE_START);
+        namePanel.add(nameField, BorderLayout.CENTER);
+        buttonPanel.add(confirmButton, BorderLayout.CENTER);
+        backPanel.add(namePanel, BorderLayout.CENTER);
+        backPanel.add(buttonPanel, BorderLayout.PAGE_END);
+
+        wFrame.add(backPanel);
+        wFrame.pack();
     }
 
     private void reachCheckBoxInit(JCheckBox checkBox, ArrayList<JCheckBox> reachBoxes,
@@ -512,28 +684,31 @@ public class GUIMain {
                                 }
                             }
                             GridTab newGridTab = new GridTab();
-                            newGridTab.init(delta, firstList, secondList, framewidth, mainPane, infoText, reachInt, algoInt,
-                                    reachString, algoString, gridAmount);
+                            interactables = newGridTab.init(delta, firstList, secondList, framewidth, mainPane,
+                                    infoText, reachInt, algoInt, reachString, algoString, gridAmount, interactables);
                             incGridAmount();
                             gridTabs.add(newGridTab);
                         }
                     } else {
                         GridTab newGridTab = new GridTab();
-                        newGridTab.init(delta, firstList, secondList, framewidth, mainPane, infoText, reachInt, 0,
-                                reachString, algoString, gridAmount);
+                        interactables = newGridTab.init(delta, firstList, secondList, framewidth, mainPane, infoText,
+                                reachInt, 0, reachString, algoString, gridAmount, interactables);
                         incGridAmount();
                         gridTabs.add(newGridTab);
                     }
                 }
             } else {
                 GridTab newGridTab = new GridTab();
-                newGridTab.init(delta, firstList, secondList, framewidth, mainPane, infoText, 0, 0,
-                        reachString, algoString, gridAmount);
+                interactables = newGridTab.init(delta, firstList, secondList, framewidth, mainPane, infoText,
+                        0, 0, reachString, algoString, gridAmount, interactables);
                 incGridAmount();
                 gridTabs.add(newGridTab);
             }
         }
-        setGridWizardCancel(false);
+        for (GridTab g : gridTabs){
+            g.updateInteractables(interactables);
+        }
+        setWizardCancel(false);
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
     }
 
@@ -548,14 +723,14 @@ public class GUIMain {
         gridAmount--;
     }
 
-    public boolean getGridWizardCancel(){
-        return gridWizardCancel;
+    public boolean getWizardCancel(){
+        return wizardCancel;
     }
-    public void setGridWizardCancel(boolean value){
-        gridWizardCancel = value;
+    public void setWizardCancel(boolean value){
+        wizardCancel = value;
     }
 
-    private void buttonNumberDependency(JButton button, JTextField field, Function<String, Boolean> function) {
+    private void buttonDependency(JButton button, JTextField field, Function<String, Boolean> function) {
         field.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {

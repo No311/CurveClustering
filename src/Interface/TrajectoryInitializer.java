@@ -18,7 +18,7 @@ public class TrajectoryInitializer {
             BufferedReader br = new BufferedReader(new InputStreamReader(din));
             String line;
             while ((line = br.readLine()) != null){
-                String[] tokens = line.split("[^\\d.]");
+                String[] tokens = line.split("[^\\d.-]");
                 TrajPoint p = new TrajPoint(Double.parseDouble(tokens[0]), Double.parseDouble(tokens[1]),
                         Double.parseDouble(tokens[2]));
                 result.addPoint(p);
@@ -44,22 +44,26 @@ public class TrajectoryInitializer {
         FileDialog fd = new FileDialog(new JFrame(), "Save Trajectory...", FileDialog.SAVE);
         fd.setVisible(true);
         try {
-            String filename = fd.getFiles()[0].getAbsolutePath();
-            String extension = filename.substring(filename.length() - 4);
-            System.out.println(extension);
-            if (!extension.equals(".txt")){
-                filename += ".txt";
+            if (fd.getFiles().length > 0) {
+                String filename = fd.getFiles()[0].getAbsolutePath();
+                String extension = filename.substring(filename.length() - 4);
+                System.out.println(extension);
+                if (!extension.equals(".txt")) {
+                    filename += ".txt";
+                }
+                BufferedWriter bw = new BufferedWriter(new FileWriter(
+                        filename, false));
+                StringBuilder toWrite = new StringBuilder();
+                for (TrajPoint p : t.getPoints()) {
+                    toWrite.append(p.toString());
+                }
+                bw.write(toWrite.toString());
+                bw.close();
+            } else {
+                infoText.append("Could not write to file, save cancelled.\n");
             }
-            BufferedWriter bw= new BufferedWriter(new FileWriter(
-                    filename, false));
-            StringBuilder toWrite = new StringBuilder();
-            for (TrajPoint p: t.getPoints()){
-                toWrite.append(p.toString());
-            }
-            bw.write(toWrite.toString());
-            bw.close();
         } catch (Exception e) {
-            infoText.append("Could not write to file \n");
+            infoText.append("Could not write to file.\n");
             e.printStackTrace();
         }
     }

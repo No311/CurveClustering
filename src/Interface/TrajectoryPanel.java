@@ -17,19 +17,28 @@ public class TrajectoryPanel extends VisualPanel{
     JLabel gridField;
     JCheckBox showGridBox;
     JTextField currentCoord;
+    JCheckBox editBox;
+    boolean controlPressed = false;
+    Trajectory currentEdit;
 
-    public TrajectoryPanel(JLabel gridField, JCheckBox showGridBox, JTextField currentField){
+    public TrajectoryPanel(JLabel gridField, JCheckBox showGridBox, JTextField currentField, JCheckBox editBox){
         this.gridField = gridField;
         this.showGridBox = showGridBox;
         this.currentCoord = currentField;
+        this.editBox = editBox;
     }
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (!chosen && !drawables.isEmpty()) {
-            TrajPoint firstpoint = drawables.get(0).getPoints().get(0);
-            startx = firstpoint.origx;
-            starty = firstpoint.origy;
+            for (Trajectory t: drawables){
+                if (t.getPoints().size() != 0){
+                    TrajPoint firstpoint = t.getPoints().get(0);
+                    startx = firstpoint.origx;
+                    starty = firstpoint.origy;
+                    break;
+                }
+            }
         }
         for (Trajectory t: drawables){
             if (t.getSelected()) {
@@ -44,7 +53,7 @@ public class TrajectoryPanel extends VisualPanel{
 
     private double originalX(double startx, double updatedx) { return (((updatedx - origin.x)*UtG)/step) + startx;}
 
-    private double originalY(double starty, double updatedy) { return (((-updatedy-origin.y)*UtG)/step) + starty;}
+    private double originalY(double starty, double updatedy) { return (((-updatedy + origin.y)*UtG)/step) + starty;}
 
     private void drawTrajectory(Graphics g, Trajectory t) {
         Graphics2D g2 = (Graphics2D) g;
@@ -85,6 +94,15 @@ public class TrajectoryPanel extends VisualPanel{
                     map.repaint();
                     map.requestFocusInWindow();
                 }
+                if (e.getKeyCode() == KeyEvent.VK_CONTROL){
+                    controlPressed = true;
+                }
+            }
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_CONTROL){
+                    controlPressed = false;
+                }
             }
         });
         map.addMouseWheelListener((MouseWheelEvent e) -> {
@@ -107,6 +125,14 @@ public class TrajectoryPanel extends VisualPanel{
             @Override
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
+                if (editBox.isSelected() && !controlPressed && currentEdit != null){
+                    double mouseX = originalX(startx, e.getX());
+                    double mouseY = originalY(starty, e.getY());
+                    double time = currentEdit.getLastTime() + 1;
+                    currentEdit.addPoint(new TrajPoint(mouseX, mouseY, time));
+                    map.repaint();
+                    map.requestFocusInWindow();
+                }
             }
         });
 
@@ -131,6 +157,13 @@ public class TrajectoryPanel extends VisualPanel{
                 currentCoord.setText("Current Coordinates: ("+mouseX+", "+mouseY+")");
             }
         });
+    }
+    public Trajectory getCurrentEdit() {
+        return currentEdit;
+    }
+
+    public void setCurrentEdit(Trajectory currentEdit) {
+        this.currentEdit = currentEdit;
     }
 
 }

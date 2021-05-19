@@ -3,18 +3,22 @@ package Interface;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
+import java.util.ArrayList;
 
 public class GridTab {
+    DFDGridPanel grid;
+    JTextArea infoText;
+    ArrayList<JComponent> interactables;
+    int tabnumber = 0;
 
-    public void init(String delta, JList<ListItem> firstList, JList<ListItem> secondList,
-                               int framewidth, JTabbedPane mainPane, JTextArea infoText, int reach, int algo,
-                               String reachString, String algoString, int gridAmount) {
+    public ArrayList<JComponent> init(String delta, JList<ListItem> firstList, JList<ListItem> secondList,
+                     int framewidth, JTabbedPane mainPane, JTextArea infoText, int reach, int algo,
+                     String reachString, String algoString, int gridAmount, ArrayList<JComponent> interactables) {
         long starttime = System.currentTimeMillis();
+        this.infoText = infoText;
+        this.tabnumber = gridAmount;
         JPanel gridPanel = new JPanel(new BorderLayout());
-
         //everything coordinatePanel
         JPanel coordinatePanel = new JPanel(new BorderLayout());
         coordinatePanel.setBorder(BorderFactory.createEtchedBorder());
@@ -33,7 +37,7 @@ public class GridTab {
         //Initialization of grid
         JCheckBox showGridBox = new JCheckBox("Show Grid", false);
         JLabel gridField = new JLabel("Grid Size = 1");
-        DFDGridPanel grid = new DFDGridPanel(Integer.parseInt(delta),
+        grid = new DFDGridPanel(Integer.parseInt(delta),
                 firstList.getSelectedValue().getT(), secondList.getSelectedValue().getT(), reach, algo, gridField,
                 showGridBox, currentField, selectedField, infoText);
 
@@ -65,7 +69,11 @@ public class GridTab {
         queryReach.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (grid.getQuerymode() > 0){
+                    infoText.append("Query Canceled.\n\n");
+                }
                 grid.setQuerymode(1);
+                infoText.append("Tab " + tabnumber +":\n");
                 infoText.append("""
                         Query Reachability Started:
                         (To cancel, press the right mouse button.)
@@ -76,7 +84,11 @@ public class GridTab {
         queryAlgo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (grid.getQuerymode() > 0){
+                    infoText.append("Query Canceled.\n\n");
+                }
                 grid.setQuerymode(2);
+                infoText.append("Tab " + tabnumber +":\n");
                 infoText.append("""
                         Query Trajectory Cover Started:
                         (To cancel, press the right mouse button.)
@@ -120,6 +132,11 @@ public class GridTab {
         gridPanel.add(grid, BorderLayout.CENTER);
         gridPanel.add(bottomPanel, BorderLayout.PAGE_END);
 
+        //dealing with interactables
+        interactables.add(queryAlgo);
+        interactables.add(queryReach);
+        this.interactables = interactables;
+
         mainPane.addTab("DFD Grid " + gridAmount, gridPanel);
         long endtime = System.currentTimeMillis();
         double time = ((double) endtime - (double) starttime)/1000;
@@ -127,5 +144,22 @@ public class GridTab {
                 "     with threshold "+delta+",\n     "+reachString+" reachability and\n     "
                 +algoString+" data structure.\n     Time: "+time+" seconds.\n\n");
 
+        return interactables;
+    }
+
+    public void updateInteractables(ArrayList<JComponent> interactables) {
+        this.interactables = interactables;
+        for (JComponent i: interactables){
+            i.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    super.mousePressed(e);
+                    if (grid.getQuerymode() > 0){
+                        infoText.append("Query Canceled: other function started.\n\n");
+                        grid.setQuerymode(0);
+                    }
+                }
+            });
+        }
     }
 }
