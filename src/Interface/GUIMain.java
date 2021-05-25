@@ -48,7 +48,7 @@ public class GUIMain {
         editBox.setEnabled(false);
         JLabel gridField = new JLabel("Grid Size = 1");
         JCheckBox showGridBox = new JCheckBox("Show Grid", true);
-        JTextField currentField = new JTextField("Current Coordinates: (0, 0)");
+        JTextField currentField = new JTextField("Current Coordinates: (x: 0, y: 0)");
         TrajectoryPanel map = new TrajectoryPanel(gridField, showGridBox, currentField, editBox);
 
         //everything frame
@@ -412,7 +412,7 @@ public class GUIMain {
         DFDGrid.addActionListener(e -> {
             infoText.append("Creating DFD Grid...\n");
             if (selectionList.getModel().getSize() == 0){
-                infoText.append("No Trajectories open to create DFD Grid from.\n");
+                infoText.append("No Trajectories open to create \nDFD Grid from.\n");
             } else{
                 initDFDGridWizard(selectionList, infoText, mainPane);
             }
@@ -502,10 +502,14 @@ public class GUIMain {
         //Everything AlgoPanel and AlgoCheckBoxPanel
         JLabel algoLabel = new JLabel("Data Structures to prepare:", SwingConstants.CENTER);
         JCheckBox naiveAlgo = new JCheckBox("Naive", false);
+        JCheckBox logAlgo = new JCheckBox("Log Query", false);
         naiveAlgo.setActionCommand("algoNaive");
+        logAlgo.setActionCommand("algoLog");
         algoCheckBoxInit(naiveAlgo, algoBoxes, algoEnabled);
+        algoCheckBoxInit(logAlgo, algoBoxes, algoEnabled);
         algoPanel.add(algoLabel, BorderLayout.PAGE_START);
         algoCheckBoxPanel.add(naiveAlgo);
+        algoCheckBoxPanel.add(logAlgo);
         algoPanel.add(algoCheckBoxPanel, BorderLayout.CENTER);
 
 
@@ -681,6 +685,10 @@ public class GUIMain {
                                 case "algoNaive" -> {
                                     algoInt = 1;
                                     algoString = "naive";
+                                }
+                                case "algoLog" -> {
+                                    algoInt = 2;
+                                    algoString = "Log Query";
                                 }
                             }
                             GridTab newGridTab = new GridTab();

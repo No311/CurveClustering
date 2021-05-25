@@ -10,6 +10,12 @@ public class GridPoint extends Point {
     public int column;
     public double x;
     public double y;
+    public GridPoint minOnRow = this;
+    public GridPoint maxOnRow = this;
+    public GridPoint maxRow = this;
+    public GridPoint minRow = this;
+    public GridPoint maxCol = this;
+    public GridPoint minCol = this;
     private int lastSize = 0;
     private Ellipse2D drawable;
     private boolean selected = false;

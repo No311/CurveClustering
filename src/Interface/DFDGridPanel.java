@@ -4,6 +4,7 @@ import DataStructures.Reachability.Reachability;
 import DataStructures.Reachability.ReachabilityNaive;
 import DataStructures.TrajCover.QueryResult;
 import DataStructures.TrajCover.TrajCover;
+import DataStructures.TrajCover.TrajCoverLog;
 import DataStructures.TrajCover.TrajCoverNaive;
 import Objects.*;
 
@@ -31,7 +32,9 @@ public class DFDGridPanel extends VisualPanel {
     private ArrayList<GridPoint> pointlist = new ArrayList<>();
     private int gridmul = 10;
     private Reachability reachdata;
+    public double reachinittime;
     private TrajCover algodata;
+    public double algoinittime;
     private int querymode = 0; //0 = none, 1 = reach, 2 = algo
     private GridPoint[] reachquery = new GridPoint[2];
     private int[] algoquery = new int[3];
@@ -70,6 +73,7 @@ public class DFDGridPanel extends VisualPanel {
         switch (algo) {
             case 0 -> algodata = null;
             case 1 -> algodata = new TrajCoverNaive();
+            case 2 -> algodata = new TrajCoverLog();
         }
         initDFDGrid();
     }
@@ -103,10 +107,16 @@ public class DFDGridPanel extends VisualPanel {
             column = 0;
         }
         if (reachdata != null){
+            long starttime = System.currentTimeMillis();
             reachdata.preprocess(pointmatrix);
+            long endtime = System.currentTimeMillis();
+            reachinittime = ((double) endtime - (double) starttime)/1000;
         }
         if (algodata != null){
+            long starttime = System.currentTimeMillis();
             algodata.preprocess(pointmatrix, reachdata);
+            long endtime = System.currentTimeMillis();
+            algoinittime = ((double) endtime - (double) starttime)/1000;
         }
     }
 
@@ -325,8 +335,12 @@ public class DFDGridPanel extends VisualPanel {
                             reachquery[1] = selected;
                             infoText.append("     Goal vertex ("+selected.row+", "+selected.column+") selected. \n" +
                                     "     Querying Reachability Oracle...\n");
+                            long starttime = System.currentTimeMillis();
                             boolean result = reachdata.query(reachquery[0], reachquery[1]);
-                            infoText.append("The answer to the query is "+result+".\n\n");
+                            long endtime = System.currentTimeMillis();
+                            double time = ((double) endtime - (double) starttime)/1000;
+                            infoText.append("The answer to the query is "+result+".\n" +
+                                    "Time: " + time + "s\n\n");
                             doSelection(reachquery[0]);
                             reachquery[1].setTarget(true);
                             querymode = 0;
@@ -348,25 +362,30 @@ public class DFDGridPanel extends VisualPanel {
                             algoquery[2] = selected.column;
                             infoText.append("     Column " + algoquery[2] + " selected as Column P. \n" +
                                     "     Querying Trajectory Cover Oracle...\n");
+                            long starttime = System.currentTimeMillis();
                             QueryResult result = algodata.query(algoquery[0], algoquery[1], algoquery[2]);
+                            long endtime = System.currentTimeMillis();
+                            double time = ((double) endtime - (double) starttime)/1000;
                             if (result == null) {
                                 infoText.append("Answer: With subtrajectory Q \n" +
-                                        "     from point " + algoquery[0] + " to point " + algoquery[1] + " of Trajectory 1,\n" +
-                                        "     a subtrajectory from Trajectory 2\n" +
+                                        "     from point " + algoquery[0] + " to point " + algoquery[1] + " of "+first.getName()+",\n" +
+                                        "     a subtrajectory from "+second.getName()+"\n" +
                                         "     covered by Q including point "+algoquery[2]+"\n" +
-                                        "     from Trajectory 2\n" +
-                                        "     does not exist\n\n");
+                                        "     from "+second.getName()+"\n" +
+                                        "     does not exist.\n" +
+                                        "     Time: " + time + "s\n\n");
                                 querymode = 0;
                             } else {
                                 doSelection(result.start);
                                 result.goal.setTarget(true);
                                 infoText.append("Answer: With subtrajectory Q \n" +
-                                        "     from point " + algoquery[0] + " to point " + algoquery[1] + " of Trajectory 1,\n" +
-                                        "     a subtrajectory from Trajectory 2\n" +
+                                        "     from point " + algoquery[0] + " to point " + algoquery[1] + " of "+first.getName()+",\n" +
+                                        "     a subtrajectory from "+second.getName()+"\n" +
                                         "     covered by Q including point "+algoquery[2]+"\n" +
-                                        "     from Trajectory 2\n" +
+                                        "     from "+second.getName()+"\n" +
                                         "     starts at point " + result.start.column + " and ends at point " +
-                                        result.goal.column + "\n     of Trajectory 2.\n\n");
+                                        result.goal.column + "\n     of "+second.getName()+".\n" +
+                                        "     Time: " + time + "s\n\n");
                                 querymode = 0;
                                 queriedTC = true;
                             }
@@ -395,16 +414,17 @@ public class DFDGridPanel extends VisualPanel {
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
-                double mouseX = originalColumn(e.getX());
-                double mouseY = originalRow(e.getY());
-                currentCoord.setText("Nearest Vertex: ("+mouseX+", "+mouseY+")");
+                int mouseX = originalColumn(e.getX());
+                int mouseY = originalRow(e.getY());
+                currentCoord.setText("Nearest Vertex: (row: "+mouseY+", column: "+mouseX+")");
             }
         });
     }
 
     private void doSelection(GridPoint selected) {
         selected.setSelected(true);
-        selectedCoord.setText("Selected Coordinates: ("+ selected.row+", "+ selected.column+") ");
+        selectedCoord.setText("Selected Coordinates: (row: "+ selected.row+", column: "+
+               selected.column+") ");
         for (GridPoint p: pointlist){
             if (p != selected){
                 p.reset();

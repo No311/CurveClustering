@@ -154,7 +154,7 @@ public class TrajectoryPanel extends VisualPanel{
                 super.mouseMoved(e);
                 double mouseX = originalX(startx, e.getX());
                 double mouseY = originalY(starty, e.getY());
-                currentCoord.setText("Current Coordinates: ("+mouseX+", "+mouseY+")");
+                currentCoord.setText("Current Coordinates: (x: "+mouseX+", y: "+mouseY+")");
             }
         });
     }

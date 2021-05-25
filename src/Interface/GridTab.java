@@ -22,8 +22,8 @@ public class GridTab {
         //everything coordinatePanel
         JPanel coordinatePanel = new JPanel(new BorderLayout());
         coordinatePanel.setBorder(BorderFactory.createEtchedBorder());
-        String currentCoord = "Nearest Vertex: (0, 0)";
-        String lastSelected = "Selected Coordinates: (0, 0) ";
+        String currentCoord = "Nearest Vertex: (row: 0, column: 0)";
+        String lastSelected = "Selected Coordinates: (row: 0, column: 0) ";
         JLabel currentField = new JLabel(currentCoord);
         JLabel selectedField = new JLabel(lastSelected);
         Font f = currentField.getFont();
@@ -142,7 +142,8 @@ public class GridTab {
         double time = ((double) endtime - (double) starttime)/1000;
         infoText.append("DFD Grid "+gridAmount+" created between\n     " + firsttraj + " and " + secondtraj + ",\n" +
                 "     with threshold "+delta+",\n     "+reachString+" reachability and\n     "
-                +algoString+" data structure.\n     Time: "+time+" seconds.\n\n");
+                +algoString+" data structure.\n     Time Total: "+time+" seconds.\n     " +
+                "Time Reachability Init: "+grid.reachinittime+"\n     Time Data Structure init: "+grid.algoinittime+"\n\n");
 
         return interactables;
     }
