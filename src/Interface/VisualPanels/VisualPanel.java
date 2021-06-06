@@ -1,13 +1,8 @@
-package Interface;
-
-import Objects.TrajPoint;
-import Objects.Trajectory;
+package Interface.VisualPanels;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Line2D;
-import java.util.ArrayList;
 
 class VisualPanel extends JPanel {
     final Color trajectoryColor = new Color(67, 104, 163);
@@ -15,13 +10,13 @@ class VisualPanel extends JPanel {
     final Color backGroundColor = new Color(206, 209, 234);
     final Color pointsColor = new Color(24, 45, 77);
     public final Point origin = new Point(0, 0);
-    private final Point lastPress = new Point(0, 0);
+    final Point lastPress = new Point(0, 0);
     public boolean zoomable = true;
     public int drawsize = 10;
     public int UtG = 1; //units per gridblock
-    private final int PtU = 24; // if zoom = 1, 24 pixels = 1 unit. Chosen for the convenience of 24.
-    private int zoom = 1;
-    private boolean showGrid = true;
+    final int PtU = 24; // if zoom = 1, 24 pixels = 1 unit. Chosen for the convenience of 24.
+    int zoom = 1;
+    boolean showGrid = true;
     public int step = 24; //the size of a gridbox.
     final private Color secondaryGridColor = new Color(230, 230, 230);
     public int size = (drawsize*step)/UtG; //size of drawn objects

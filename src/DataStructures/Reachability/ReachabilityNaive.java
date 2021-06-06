@@ -3,7 +3,7 @@ package DataStructures.Reachability;
 import Objects.GridEdge;
 import Objects.GridPoint;
 
-public class ReachabilityNaive implements Reachability {
+public class ReachabilityNaive extends Reachability {
     GridPoint[][] pointmatrix;
     boolean[][][][] reachmatrix; //can the first two coordinates reach the second two coordinates?
 
@@ -36,8 +36,8 @@ public class ReachabilityNaive implements Reachability {
                                         reachmatrix[actualorow][ocolumn][actualtrow][tcolumn] = true;
 //                                        System.out.printf("Origin = (%d, %d) can reach Target = (%d, %d)\n",
 //                                                actualorow, ocolumn, actualtrow, tcolumn);
-                                        p.addReachable(pointmatrix[trow][tcolumn]);
-                                        pointmatrix[trow][tcolumn].addReachedFrom(p);
+//                                        p.addReachable(pointmatrix[trow][tcolumn]);
+//                                        pointmatrix[trow][tcolumn].addReachedFrom(p);
                                     }
                                 }
                             }
@@ -50,6 +50,9 @@ public class ReachabilityNaive implements Reachability {
 
     @Override
     public boolean query(GridPoint start, GridPoint goal) {
+        if (start == null || goal == null){
+            return false;
+        }
         return reachmatrix[start.row][start.column][goal.row][goal.column];
     }
 

@@ -1,7 +1,10 @@
-package Interface;
+package Interface.Tabs;
+
+import Interface.ListItem;
+import Interface.VisualPanels.DFDGridPanel;
+import Interface.WrapLayout;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -13,12 +16,13 @@ public class GridTab {
     int tabnumber = 0;
 
     public ArrayList<JComponent> init(String delta, JList<ListItem> firstList, JList<ListItem> secondList,
-                     int framewidth, JTabbedPane mainPane, JTextArea infoText, int reach, int algo,
-                     String reachString, String algoString, int gridAmount, ArrayList<JComponent> interactables) {
+                                      int framewidth, JTabbedPane mainPane, JTextArea infoText, int reach, int algo,
+                                      String reachString, String algoString, int gridAmount, ArrayList<JComponent> interactables) {
         long starttime = System.currentTimeMillis();
         this.infoText = infoText;
         this.tabnumber = gridAmount;
         JPanel gridPanel = new JPanel(new BorderLayout());
+
         //everything coordinatePanel
         JPanel coordinatePanel = new JPanel(new BorderLayout());
         coordinatePanel.setBorder(BorderFactory.createEtchedBorder());
@@ -61,10 +65,14 @@ public class GridTab {
         if (reach == 0){
             queryReach.setEnabled(false);
             queryReach.setText("<html><center>Reachability<br>Not Prepared</center></html>");
+        } else {
+            interactables.add(queryReach);
         }
         if (algo == 0){
             queryAlgo.setEnabled(false);
             queryAlgo.setText("<html><center>Trajectory Coverage<br>Not Prepared</center></html>");
+        } else {
+            interactables.add(queryAlgo);
         }
         queryReach.addActionListener(new ActionListener() {
             @Override
@@ -133,8 +141,6 @@ public class GridTab {
         gridPanel.add(bottomPanel, BorderLayout.PAGE_END);
 
         //dealing with interactables
-        interactables.add(queryAlgo);
-        interactables.add(queryReach);
         this.interactables = interactables;
 
         mainPane.addTab("DFD Grid " + gridAmount, gridPanel);

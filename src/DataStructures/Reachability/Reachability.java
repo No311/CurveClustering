@@ -2,10 +2,10 @@ package DataStructures.Reachability;
 
 import Objects.GridPoint;
 
-public interface Reachability {
+public abstract class Reachability {
 
-    void preprocess(GridPoint[][] pointmatrix);
+    abstract public void preprocess(GridPoint[][] pointmatrix);
 
-    boolean query(GridPoint start, GridPoint goal);
+    abstract public boolean query(GridPoint start, GridPoint goal);
 
 }

@@ -2,25 +2,42 @@ package Objects;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
+import java.util.ArrayList;
 
-public class TrajPoint extends Point implements Comparable<TrajPoint> {
-    public double time;
-    public double origx;
-    public double origy;
+public class TrajPoint extends Point implements Comparable<TrajPoint>{
+    public final double time;
+    public final double origx;
+    public final double origy;
     public double x;
     public double y;
-    private boolean selected;
-    private Color selectedColor = new Color(0,0,0);
+    public int index;
+    public boolean selected;
+    public boolean covered;
+    private double clonex;
+    private double cloney;
     private Ellipse2D drawable;
 
 
     public TrajPoint(double x, double y, double time){
         this.origx = x;
         this.origy = y;
+        this.clonex = x;
+        this.cloney = y;
         this.time = time;
-        this.x = 0;
-        this.y = 0;
         drawable = new Ellipse2D.Double(0,0,0,0);
+    }
+
+    public void setClone(){
+        clonex = origx-50;
+        cloney = origy-50;
+    }
+
+    public double drawOrigX(){
+        return clonex;
+    }
+
+    public double drawOrigY(){
+        return cloney;
     }
 
     public void print(){
@@ -48,6 +65,20 @@ public class TrajPoint extends Point implements Comparable<TrajPoint> {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public boolean isCovered() {
+        return covered;
+    }
+
+    public void setCovered(boolean covered) { this.covered = covered; }
+
+    public TrajPoint clone(){
+        return new TrajPoint(origx, origy, time);
+    }
+
+    public Ellipse2D getDrawable() {
+        return drawable;
     }
 }
 

@@ -1,4 +1,4 @@
-package Interface;
+package Interface.VisualPanels;
 
 import DataStructures.Reachability.Reachability;
 import DataStructures.Reachability.ReachabilityNaive;
@@ -26,7 +26,8 @@ public class DFDGridPanel extends VisualPanel {
     JLabel currentCoord;
     JLabel selectedCoord;
     JTextArea infoText;
-    private final GridPoint[][] pointmatrix;
+    DFDGrid GridObject;
+    private GridPoint[][] pointmatrix;
     private int rowmax;
     private ArrayList<GridEdge> edges = new ArrayList<>();
     private ArrayList<GridPoint> pointlist = new ArrayList<>();
@@ -59,8 +60,6 @@ public class DFDGridPanel extends VisualPanel {
         this.first = first;
         this.second = second;
         this.threshold = threshold;
-        pointmatrix = new GridPoint[first.getPoints().size()][second.getPoints().size()];
-        this.rowmax = first.getPoints().size()-1;
         this.gridField = gridField;
         this.showGridBox = showGridBox;
         this.currentCoord = currentCoord;
@@ -79,33 +78,11 @@ public class DFDGridPanel extends VisualPanel {
     }
 
     private void initDFDGrid() {
-        int row = 0; //points of first
-        int column = 0; //points of second
-        for (TrajPoint p: first.getPoints()){
-            for (TrajPoint q: second.getPoints()){
-                double dist = Point2D.distance(p.origx, p.origy, q.origx, q.origy);
-                if (dist <= threshold){
-                    int actualrow = rowmax - row; //note: actualrow is used for the pointmatrix, which sets the origin
-                                                  //at the lower left corner.
-                    GridPoint newpoint = new GridPoint(row, column, p, q, actualrow);
-                    pointmatrix[actualrow][column] = newpoint;
-                    pointlist.add(newpoint);
-                    boolean diagred = false;
-                    if (row > 0){
-                        diagred = makeEdge(newpoint, pointmatrix[actualrow+1][column], false, dist);
-                    }
-                    if (column > 0){
-                        diagred = makeEdge(newpoint, pointmatrix[actualrow][column-1], false, dist);
-                    }
-                    if (row > 0 && column > 0){
-                        makeEdge(newpoint, pointmatrix[actualrow+1][column-1], diagred, dist);
-                    }
-                }
-                column++;
-            }
-            row++;
-            column = 0;
-        }
+        GridObject = new DFDGrid(first, second, threshold, getStandardDist(), size);
+        pointmatrix = GridObject.getPointsMatrix();
+        pointlist = GridObject.getPointList();
+        edges = GridObject.getEdgesList();
+        rowmax = GridObject.getRowmax();
         if (reachdata != null){
             long starttime = System.currentTimeMillis();
             reachdata.preprocess(pointmatrix);

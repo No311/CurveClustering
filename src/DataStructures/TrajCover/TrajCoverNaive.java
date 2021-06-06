@@ -3,7 +3,7 @@ package DataStructures.TrajCover;
 import DataStructures.Reachability.Reachability;
 import Objects.GridPoint;
 
-public class TrajCoverNaive implements TrajCover{
+public class TrajCoverNaive extends TrajCover{
     GridPoint[][][] furthestReach; //furthestReach[row1][row2][column] gives the farthest gridpoint on row 2
                                    //that the gridpoint at coordinates (row1, column) can reach.
     GridPoint[][][] queries; //queries[row1][row2][p] gives a gridpoint with the farthest distance between its
@@ -16,8 +16,8 @@ public class TrajCoverNaive implements TrajCover{
 
     @Override
     public void preprocess(GridPoint[][] pointmatrix, Reachability reach) {
-        this.pointmatrix = pointmatrix;
-        this.reach = reach;
+        super.preprocess(pointmatrix, reach);
+        computeRow1Reach(null);
         furthestReach = new GridPoint[pointmatrix.length][pointmatrix.length][pointmatrix[0].length];
         queries = new GridPoint[pointmatrix.length][pointmatrix.length][pointmatrix[0].length];
         //prepping furthestReach
@@ -81,5 +81,14 @@ public class TrajCoverNaive implements TrajCover{
         }
         GridPoint goal = furthestReach[qStart][qEnd][start.column];
         return new QueryResult(start, goal);
+    }
+
+    @Override
+    public int singleFurthestQuery(int qStart, int qEnd, int startPointIndex) {
+        GridPoint furthest = furthestReach[qStart][qEnd][startPointIndex];
+        if (furthest!= null){
+            return furthest.column;
+        }
+        return -1;
     }
 }

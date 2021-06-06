@@ -47,7 +47,6 @@ public class TrajectoryInitializer {
             if (fd.getFiles().length > 0) {
                 String filename = fd.getFiles()[0].getAbsolutePath();
                 String extension = filename.substring(filename.length() - 4);
-                System.out.println(extension);
                 if (!extension.equals(".txt")) {
                     filename += ".txt";
                 }
