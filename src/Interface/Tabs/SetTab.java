@@ -334,7 +334,7 @@ public class SetTab {
             reach.set(GridObject[first.index][second.index].getPointsMatrix(), swapReach.getSwapped(),
                     swapReach.getReachMatrix());
         } else {
-            reach.preprocess(GridObject[first.index][second.index].getPointsMatrix());
+            reach.preprocess(GridObject[first.index][second.index].getPointsMatrix(), first, second);
         }
         reachabilitiesPerFirst[first.index][second.index] = reach;
         endtime = System.currentTimeMillis();

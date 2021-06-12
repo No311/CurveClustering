@@ -85,7 +85,7 @@ public class DFDGridPanel extends VisualPanel {
         rowmax = GridObject.getRowmax();
         if (reachdata != null){
             long starttime = System.currentTimeMillis();
-            reachdata.preprocess(pointmatrix);
+            reachdata.preprocess(pointmatrix, first, second);
             long endtime = System.currentTimeMillis();
             reachinittime = ((double) endtime - (double) starttime)/1000;
         }

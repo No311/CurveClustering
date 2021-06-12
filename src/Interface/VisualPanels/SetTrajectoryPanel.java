@@ -170,7 +170,7 @@ public class SetTrajectoryPanel extends TrajectoryPanel {
 
     public void setSelection(){
         for (Trajectory t: drawables){
-            t.amountSelected--;
+            t.amountSelected = 0;
             for (TrajPoint p: t.getPoints()){
                 p.setSelected(false);
                 p.setCovered(false);

@@ -2,15 +2,27 @@ package DataStructures.Reachability;
 
 import Objects.GridEdge;
 import Objects.GridPoint;
+import Objects.Trajectory;
 
 public class ReachabilityNaive extends Reachability {
-
+private Trajectory first;
+private Trajectory second;
 
     @Override
-    public void preprocess(GridPoint[][] pointmatrix) {
+    public void preprocess(GridPoint[][] pointmatrix, Trajectory first, Trajectory second) {
         this.pointmatrix = pointmatrix;
+        this.first = first;
+        this.second = second;
+        newPrep();
+    }
+
+    private void newPrep(){
         reachmatrix = newPrep(pointmatrix.length, pointmatrix[0].length, false);
-        reachmatrixswap = newPrep(pointmatrix[0].length, pointmatrix.length, true);
+        if (!first.getName().equals(second.getName())) {
+            reachmatrixswap = newPrep(pointmatrix[0].length, pointmatrix.length, true);
+        } else {
+            reachmatrixswap = reachmatrix;
+        }
     }
 
     private void oldPrep(){
