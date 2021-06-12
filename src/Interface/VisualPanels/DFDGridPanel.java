@@ -91,7 +91,7 @@ public class DFDGridPanel extends VisualPanel {
         }
         if (algodata != null){
             long starttime = System.currentTimeMillis();
-            algodata.preprocess(pointmatrix, reachdata);
+            algodata.preprocess(pointmatrix, reachdata, first, second);
             long endtime = System.currentTimeMillis();
             algoinittime = ((double) endtime - (double) starttime)/1000;
         }

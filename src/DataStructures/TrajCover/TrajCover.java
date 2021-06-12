@@ -3,6 +3,7 @@ package DataStructures.TrajCover;
 import Objects.GridEdge;
 import Objects.GridPoint;
 import DataStructures.Reachability.*;
+import Objects.Trajectory;
 
 import java.util.Stack;
 
@@ -12,8 +13,12 @@ public abstract class TrajCover {
     GridPoint[][][] Row1Reach;      //This structure (row1, row2, column) takes two rows and the column of a point on
                                     //the second row, and returns a point on the first row in column that can reach it,
                                     //if it exists.
+    Trajectory first;
+    Trajectory second;
 
-    public void preprocess(GridPoint[][] pointmatrix, Reachability reach) {
+    public void preprocess(GridPoint[][] pointmatrix, Reachability reach, Trajectory first, Trajectory second) {
+        this.first = first;
+        this.second = second;
         this.pointmatrix = pointmatrix;
         this.reach = reach;
         Row1Reach = new GridPoint[pointmatrix.length][pointmatrix.length][pointmatrix[0].length];
@@ -110,6 +115,7 @@ public abstract class TrajCover {
                             }
                             gcol--;
                         } else {
+
                             scol--;
                         }
                     }
@@ -134,6 +140,14 @@ public abstract class TrajCover {
             return closest.column;
         }
         return -1;
+    }
+
+    public Trajectory getFirst() {
+        return first;
+    }
+
+    public Trajectory getSecond() {
+        return second;
     }
 }
 

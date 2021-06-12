@@ -2,6 +2,7 @@ package DataStructures.TrajCover;
 
 import DataStructures.Reachability.Reachability;
 import Objects.GridPoint;
+import Objects.Trajectory;
 
 public class TrajCoverNaive extends TrajCover{
     GridPoint[][][] furthestReach; //furthestReach[row1][row2][column] gives the farthest gridpoint on row 2
@@ -15,8 +16,8 @@ public class TrajCoverNaive extends TrajCover{
 
 
     @Override
-    public void preprocess(GridPoint[][] pointmatrix, Reachability reach) {
-        super.preprocess(pointmatrix, reach);
+    public void preprocess(GridPoint[][] pointmatrix, Reachability reach, Trajectory first, Trajectory second) {
+        super.preprocess(pointmatrix, reach, first, second);
         computeRow1Reach(null);
         furthestReach = new GridPoint[pointmatrix.length][pointmatrix.length][pointmatrix[0].length];
         queries = new GridPoint[pointmatrix.length][pointmatrix.length][pointmatrix[0].length];

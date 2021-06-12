@@ -13,6 +13,8 @@ public class Trajectory {
     private boolean haspoints;
     private String name;
     private double lastTime = 0;
+    public int index = -1;
+    public int amountSelected = 0;
 
     public Trajectory(File source){
         this.source = source;

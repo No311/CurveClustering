@@ -11,8 +11,8 @@ public class TrajPoint extends Point implements Comparable<TrajPoint>{
     public double x;
     public double y;
     public int index;
-    public boolean selected;
-    public boolean covered;
+    private boolean selected;
+    private boolean covered;
     private double clonex;
     private double cloney;
     private Ellipse2D drawable;

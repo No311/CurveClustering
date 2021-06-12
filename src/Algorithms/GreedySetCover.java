@@ -10,36 +10,60 @@ import java.util.Arrays;
 
 public class GreedySetCover {
 
-    public ArrayList<OracleResult> doGreedySetCover(SetSystemOracle oracle, int lMinValue, int lMaxValue) {
-        if (lMaxValue == -1 || lMaxValue > oracle.getFirst().getPoints().size()-1){
-            lMaxValue = oracle.getFirst().getPoints().size()-1;
+    public ArrayList<OracleResult> doGreedySetCover(ArrayList<Trajectory> trajectories,
+                                                    ArrayList<SetSystemOracle> oracles, int lMinValue, int lMaxValue) {
+        int maxValue = getMaxValue(trajectories);
+        if (lMaxValue == -1 || lMaxValue > maxValue){
+            lMaxValue = maxValue;
         }
         lMaxValue = Math.max(lMaxValue, lMinValue);
-        ArrayList<OracleResult> candidates = getCandidateTrajectories(oracle, oracle.getFirst(), lMinValue, lMaxValue);
-        boolean[] nowCovered = new boolean[oracle.getSecond().getPoints().size()];
-        ArrayList<OracleResult> result = doGreedyPart(candidates, nowCovered, oracle.getTotalCoveredByFirst());
+        ArrayList<OracleResult> candidates = getCandidateTrajectories(trajectories, oracles, lMinValue, lMaxValue);
+        boolean[][] nowCovered = new boolean[trajectories.size()][];
+        for (Trajectory trajectory: trajectories){
+            nowCovered[trajectory.index] = new boolean[trajectory.getPoints().size()];
+        }
+        ArrayList<OracleResult> result = doGreedyPart(candidates, nowCovered, trajectories);
         return result;
     }
 
-    public ArrayList<OracleResult> getCandidateTrajectories(SetSystemOracle oracle, Trajectory first,
+    private int getMaxValue(ArrayList<Trajectory> trajectories) {
+        int maxValue = 0;
+        for (Trajectory trajectory: trajectories){
+            if (trajectory.getPoints().size()-1 > maxValue){
+                maxValue = trajectory.getPoints().size()-1;
+            }
+        }
+        return maxValue;
+    }
+
+    public ArrayList<OracleResult> getCandidateTrajectories(ArrayList<Trajectory> trajectories,
+                                                            ArrayList<SetSystemOracle> oracles,
                                                             int lMin, int lMax){
         ArrayList<OracleResult> result = new ArrayList<>();
-        for (int i = 0; i< first.getPoints().size(); i++){
-            for (int j = i+lMin; j<= Math.min(i+lMax, first.getPoints().size()-1); j++){
-                result.add(oracle.getCoveredBySub(i, j));
+        for (Trajectory t: trajectories) {
+            for (SetSystemOracle oracle: oracles){
+                if (oracle.getFirst() == t){
+                    for (int i = 0; i < t.getPoints().size(); i++) {
+                        for (int j = i + lMin; j <= Math.min(i + lMax, t.getPoints().size() - 1); j++) {
+                            OracleResult candidate = oracle.getCoveredBySub(i, j);
+                            candidate.resetAmountCovered();
+                            result.add(candidate);
+                        }
+                    }
+                }
             }
         }
         return result;
     }
 
 
-    private ArrayList<OracleResult> doGreedyPart(ArrayList<OracleResult> candidates, boolean[] nowCovered,
-                                                 boolean[] totalCovered) {
+    private ArrayList<OracleResult> doGreedyPart(ArrayList<OracleResult> candidates, boolean[][] nowCovered,
+                                                 ArrayList<Trajectory> trajectories) {
         ArrayList<OracleResult> result = new ArrayList<>();
         if (candidates.isEmpty()){
             return result;
         }
-        if (Arrays.equals(nowCovered, totalCovered)){
+        if (checkCovered(trajectories)){
             return result;
         }
         OracleResult currentChoice = candidates.get(0);
@@ -58,9 +82,13 @@ public class GreedySetCover {
                 }
             }
         }
-        for (int i = 0; i < nowCovered.length; i++){
-            if (currentChoice.getCovered()[i] && !nowCovered[i]){
-                nowCovered[i] = true;
+        for (Trajectory t: currentChoice.getSelection()) {
+            for (int i = 0; i < nowCovered[t.index].length; i++) {
+                if (nowCovered[t.index][i]){
+                }
+                if (currentChoice.getCovered()[t.index][i]) {
+                    nowCovered[t.index][i] = true;
+                }
             }
         }
         currentChoice.setSelected(true);
@@ -72,9 +100,26 @@ public class GreedySetCover {
             if(c.amountCovered == 0){
                 toBeRemoved.add(c);
             }
+            //remove this bit if defining subtrajectories are allowed to overlap
+            for (int i = c.getSubTrajStart().index; i<= c.getSubTrajEnd().index; i++){
+                if (c.getFirst().getPoints().get(i).isSelected()){
+                    toBeRemoved.add(c);
+                }
+            }
         }
         candidates.removeAll(toBeRemoved);
-        result.addAll(doGreedyPart(candidates, nowCovered, totalCovered));
+        result.addAll(doGreedyPart(candidates, nowCovered, trajectories));
         return result;
+    }
+
+    private boolean checkCovered(ArrayList<Trajectory> trajectories) {
+        for (Trajectory t: trajectories){
+            for (TrajPoint p: t.getPoints()){
+                if(!p.isCovered()){
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }

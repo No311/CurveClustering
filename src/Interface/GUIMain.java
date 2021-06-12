@@ -117,12 +117,9 @@ public class GUIMain {
                 sizeSlider, sliderLabel);
         topPanel.add(menu, BorderLayout.LINE_START);
 
-        //everything coordinatePanel
-        JPanel coordinatePanel = new JPanel(new BorderLayout());
-        coordinatePanel.setBorder(BorderFactory.createEtchedBorder());
+        //everything currentField
         currentField.setBackground(UIManager.getColor ( "Panel.background" ));
         currentField.setEditable(false);
-        coordinatePanel.add(currentField, BorderLayout.LINE_START);
 
         //listeners
         map.addMapListeners(map);
@@ -195,26 +192,10 @@ public class GUIMain {
         frame.requestFocus();
     }
 
-    private void selectionListInit(TrajectoryPanel map, JList<ListItem> selectionList) {
-        setCellRenderer(selectionList);
-        selectionList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        selectionList.addListSelectionListener(e -> {
-            ArrayList<Trajectory> newselected = new ArrayList<>();
-            List<ListItem> selectedValues = selectionList.getSelectedValuesList();
-            for (ListItem i: ListData){
-                boolean selected = selectedValues.contains(i);
-                i.getT().setSelected(selected);
-                if (selected){
-                    newselected.add(i.getT());
-                }
-            }
-            selectedTrajectories = newselected;
-            map.repaint();
-        });
-    }
+
 
     private void editListInit(TrajectoryPanel map, JList<ListItem> editList, JCheckBox editBox) {
-        setCellRenderer(editList);
+        gF.setCellRenderer(editList);
         editList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         editList.addListSelectionListener(e -> {
             if (e.getValueIsAdjusting()){
@@ -260,16 +241,6 @@ public class GUIMain {
         });
     }
 
-    private void setCellRenderer(JList<ListItem> list){
-        list.setCellRenderer(new DefaultListCellRenderer() {
-            public Component getListCellRendererComponent(JList<ListItem> list, ListItem value, int index, boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                setText(value.toString());
-                return this;
-            }
-        });
-    }
-
     private void addButtonListeners(JFrame frame, TrajectoryPanel map, JLabel sliderLabel,
                                     JList<ListItem> selectionList, JList<ListItem> editList,
                                     JTextArea infoText, JTextField muField,
@@ -309,6 +280,24 @@ public class GUIMain {
             frame.repaint();
             frame.requestFocus();
 
+        });
+    }
+
+    private void selectionListInit(TrajectoryPanel map, JList<ListItem> selectionList) {
+        gF.setCellRenderer(selectionList);
+        selectionList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        selectionList.addListSelectionListener(e -> {
+            ArrayList<Trajectory> newselected = new ArrayList<>();
+            List<ListItem> selectedValues = selectionList.getSelectedValuesList();
+            for (ListItem i: ListData){
+                boolean selected = selectedValues.contains(i);
+                i.getT().setSelected(selected);
+                if (selected){
+                    newselected.add(i.getT());
+                }
+            }
+            selectedTrajectories = newselected;
+            map.repaint();
         });
     }
 
@@ -464,7 +453,7 @@ public class GUIMain {
     private void initSetWizard(JList<ListItem> selectionList, JTextArea infoText, JTabbedPane mainPane) {
         gF.disable(interactables);
         SetSystemWizard setWizard = new SetSystemWizard();
-        setWizard.init(selectionList, infoText, mainPane, interactables, gridAmount, framewidth);
+        setWizard.init(selectionList, infoText, mainPane, interactables, setAmount, framewidth);
         setWizard.getFrame().addWindowListener(new WindowAdapter()
         {
             @Override

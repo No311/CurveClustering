@@ -4,13 +4,16 @@ import Interface.GeneralFunctions;
 import Interface.ListItem;
 import Interface.Tabs.GridTab;
 import Interface.Tabs.SetTab;
+import Interface.VisualPanels.TrajectoryPanel;
 import Interface.WrapLayout;
+import Objects.Trajectory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 public class SetSystemWizard {
     ArrayList<JComponent> interactables;
@@ -19,7 +22,8 @@ public class SetSystemWizard {
     boolean wizardCancel = true;
     GeneralFunctions gF = new GeneralFunctions();
     JFrame frame;
-    public void init(JList<ListItem> selectionList, JTextArea infoText, JTabbedPane mainPane,
+
+    public void init(JList<ListItem> selection, JTextArea infoText, JTabbedPane mainPane,
                      ArrayList<JComponent> interactables, int setAmount, int framewidth){
         this.interactables = interactables;
         this.amount = setAmount;
@@ -37,7 +41,7 @@ public class SetSystemWizard {
         JPanel algoPanel = new JPanel(new BorderLayout());
         JPanel reachPanel = new JPanel(new BorderLayout());
         JPanel queryPanel = new JPanel(new BorderLayout());
-        JPanel listsPanel = new JPanel(new GridLayout(1,2));
+        JPanel listsPanel = new JPanel(new GridLayout(1,1));
         JPanel methodWrapper = new JPanel(new BorderLayout());
         JPanel methodPanel = new JPanel(new GridLayout(2, 1));
         JPanel NaivePanel = new JPanel(new BorderLayout());
@@ -55,34 +59,23 @@ public class SetSystemWizard {
         frame.setVisible(true);
         frame.setLayout(new BorderLayout());
 
-        //Everything FirstList
-        JPanel firstListPanel = new JPanel(new BorderLayout());
-        firstListPanel.setBorder(BorderFactory.createEtchedBorder());
-        JTextField firstLabel = new JTextField("Choose the 1st trajectory:");
-        firstLabel.setEditable(false);
-        firstListPanel.add(firstLabel, BorderLayout.PAGE_START);
-        JList<ListItem> firstList = new JList<>(selectionList.getModel());
-        firstList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane firstScroll = new JScrollPane(firstList);
-        firstListPanel.add(firstScroll, BorderLayout.CENTER);
-
-        //Everything SecondList
-        JPanel secondListPanel = new JPanel(new BorderLayout());
-        secondListPanel.setBorder(BorderFactory.createEtchedBorder());
-        JTextField secondLabel = new JTextField("Choose the 2nd trajectory:");
-        secondLabel.setEditable(false);
-        secondListPanel.add(secondLabel, BorderLayout.PAGE_START);
-        JList<ListItem> secondList = new JList<>(selectionList.getModel());
-        secondList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane secondScroll = new JScrollPane(secondList);
-        secondListPanel.add(secondScroll, BorderLayout.CENTER);
+        //Everything SelectionList
+        JPanel selectionListPanel = new JPanel(new BorderLayout());
+        selectionListPanel.setBorder(BorderFactory.createEtchedBorder());
+        JTextField selectionLabel = new JTextField("Choose the trajectories:");
+        selectionLabel.setEditable(false);
+        selectionListPanel.add(selectionLabel, BorderLayout.PAGE_START);
+        JList<ListItem> selectionList = new JList<>(selection.getModel());
+        selectionList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        JScrollPane selectionScroll = new JScrollPane(selectionList);
+        selectionListPanel.add(selectionScroll, BorderLayout.CENTER);
 
         //Everything NaiveMethod
         NaivePanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(Color.BLACK),"Naive Method"));
         JCheckBox nMethodBox = new JCheckBox("Use the Naive Method");
         nMethodBox.setHorizontalAlignment(SwingConstants.CENTER);
-        nMethodBox.setEnabled(false);
+        choiceBoxes.add(nMethodBox);
         NaivePanel.add(nMethodBox);
 
         //Everything ReachPanel and ReachCheckBoxPanel
@@ -183,17 +176,13 @@ public class SetSystemWizard {
         optionsPanel.add(buttonPanel, BorderLayout.PAGE_END);
 
         //listeners
-        firstList.addListSelectionListener(e -> deltaField.setEditable(firstList.getSelectedIndices().length != 0 &&
-                secondList.getSelectedIndices().length != 0));
-        secondList.addListSelectionListener(e -> deltaField.setEditable(firstList.getSelectedIndices().length != 0 &&
-                secondList.getSelectedIndices().length != 0));
+        selectionList.addListSelectionListener(e -> deltaField.setEditable(selectionList.getSelectedIndices().length != 0));
         gF.buttonChoiceDependency(confirm, deltaField, (String s) -> !s.equals("") && s.matches("^[\\d\\s,]*$"),
                 choiceBoxes);
-        confirm.addActionListener(e -> createSetTabs(deltaField, firstList, secondList,
+        confirm.addActionListener(e -> createSetTabs(deltaField, selectionList,
                 nMethodBox, NaiveBoxes, DFDMethodBox, frame, mainPane, infoText,
                 reachEnabled, algoEnabled, queryEnabled, framewidth));
-        listsPanel.add(firstListPanel, 0);
-        listsPanel.add(secondListPanel, 1);
+        listsPanel.add(selectionListPanel);
 
         backPanel.add(listsPanel);
 
@@ -203,15 +192,15 @@ public class SetSystemWizard {
         frame.pack();
     }
 
-    private void createSetTabs(JTextField deltaField, JList<ListItem> firstList, JList<ListItem> secondList,
+    private void createSetTabs(JTextField deltaField, JList<ListItem> selectionList,
                                JCheckBox nMethodBox, ArrayList<JCheckBox> naiveBoxes, JCheckBox DFDMethodBox,
                                JFrame frame, JTabbedPane mainPane, JTextArea infoText,
                                ArrayList<JCheckBox> reachEnabled, ArrayList<JCheckBox> algoEnabled,
                                ArrayList<JCheckBox> queryEnabled, int framewidth) {
         String deltatext = deltaField.getText().replaceAll("\\s", "");
         String[] deltas = deltatext.split(",");
-        if (!(firstList.getSelectedValue().getT().hasPoints() && secondList.getSelectedValue().getT().hasPoints())){
-            infoText.append("     One of the trajectories is empty.\nProcess Cancelled.");
+        if (!(selectionList.getSelectedValue().getT().hasPoints())){
+            infoText.append("     No selected trajectories.\nProcess Cancelled.");
             wizardCancel = false;
             frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
             return;
@@ -221,9 +210,12 @@ public class SetSystemWizard {
         if (nMethodBox.isSelected()){
             methodString = "Naive";
             for (String delta: deltas){
-                for (JCheckBox box: naiveBoxes){
-                    //create new setTab
-                }
+                SetTab newSetTab = new SetTab();
+                interactables = newSetTab.init(delta, selectionList, framewidth, mainPane,
+                        infoText, method, methodString, -1, -1, -1, "",
+                        "", "", amount, interactables);
+                amount++;
+                tabs.add(newSetTab);
             }
         }
         if (DFDMethodBox.isSelected()) {
@@ -269,7 +261,7 @@ public class SetSystemWizard {
                                             }
                                         }
                                         SetTab newSetTab = new SetTab();
-                                        interactables = newSetTab.init(delta, firstList, secondList, framewidth, mainPane,
+                                        interactables = newSetTab.init(delta, selectionList, framewidth, mainPane,
                                                 infoText, method, methodString, reachInt, algoInt, queryInt, reachString,
                                                 algoString, queryString, amount, interactables);
                                         amount++;

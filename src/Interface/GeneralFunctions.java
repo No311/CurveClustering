@@ -1,14 +1,18 @@
 package Interface;
 
+import Interface.VisualPanels.TrajectoryPanel;
 import Objects.GridPoint;
 import Objects.GridEdge;
+import Objects.Trajectory;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 public class GeneralFunctions {
@@ -97,5 +101,15 @@ public class GeneralFunctions {
         } else {
             button.setEnabled(false);
         }
+    }
+
+    public void setCellRenderer(JList<ListItem> list){
+        list.setCellRenderer(new DefaultListCellRenderer() {
+            public Component getListCellRendererComponent(JList<ListItem> list, ListItem value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                setText(value.toString());
+                return this;
+            }
+        });
     }
 }

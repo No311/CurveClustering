@@ -3,6 +3,7 @@ package DataStructures.TrajCover;
 import DataStructures.Reachability.Reachability;
 import Objects.GridEdge;
 import Objects.GridPoint;
+import Objects.Trajectory;
 
 import java.util.ArrayList;
 import java.util.Stack;
@@ -15,8 +16,8 @@ public class TrajCoverLog extends TrajCover {
 
 
     @Override
-    public void preprocess(GridPoint[][] pointmatrix, Reachability reach) {
-        super.preprocess(pointmatrix, reach);
+    public void preprocess(GridPoint[][] pointmatrix, Reachability reach, Trajectory first, Trajectory second) {
+        super.preprocess(pointmatrix, reach, first, second);
         POI1 = new GridPoint[pointmatrix.length][pointmatrix.length][pointmatrix[0].length];
         POI2 = new GridPoint[pointmatrix.length][pointmatrix.length][pointmatrix[0].length];
 

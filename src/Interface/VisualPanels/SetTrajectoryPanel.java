@@ -10,42 +10,43 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class SetTrajectoryPanel extends TrajectoryPanel {
-    private SetSystemOracle oracle;
-    private Trajectory first = null;
-    private Trajectory second = null;
-    ArrayList<TrajPoint> firstPoints = new ArrayList<>();
-    ArrayList<TrajPoint> secondPoints = new ArrayList<>();
+    private ArrayList<SetSystemOracle> oracles;
     ArrayList<OracleResult> selectedResults = new ArrayList<>();
     OracleResult lastResult = null;
-    final Color selectedColor = new Color(196, 82, 0);
+    final Color selectedColor = Color.RED;
+    //final Color selectedColor = new Color(196, 82, 0);
     final Color selectedPColor = new Color(196, 177, 0);
     final Color selectedEColor = new Color(250, 231, 60);
     final Color coveredPColor = new Color(16, 107, 47);
     final Color coveredEColor = new Color(80, 191, 118);
+    int[] amountSelected;
 
     public SetTrajectoryPanel(JLabel gridField, JCheckBox showGridBox, JTextField currentField,
-                              SetSystemOracle oracle){
+                              ArrayList<SetSystemOracle> oracles){
         super(gridField, showGridBox, currentField, new JCheckBox());
-        this.oracle = oracle;
+        this.oracles = oracles;
+        amountSelected = new int[drawables.size()];
     }
 
-    public void updateDrawables(Trajectory first, Trajectory second){
-        this.first = first;
-        this.second = second;
-        firstPoints = first.getPoints();
-        secondPoints = second.getPoints();
-    }
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        TrajPoint firstpoint = first.getPoints().get(0);
+        TrajPoint firstpoint = drawables.get(0).getPoints().get(0);
         startx = firstpoint.drawOrigX();
         starty = firstpoint.drawOrigY();
-        drawTrajectory(g, second, Color.BLACK, Color.GRAY);
-        drawTrajectory(g, first, pointsColor, trajectoryColor);
+        drawables.sort((c1, c2) -> {
+            if (c1.amountSelected > c2.amountSelected) return 1;
+            if (c1.amountSelected < c2.amountSelected) return -1;
+            return 0;
+        });
+        for (Trajectory t: drawables){
+            drawTrajectory(g, t, pointsColor, trajectoryColor);
+        }
     }
 
     @Override
@@ -103,19 +104,29 @@ public class SetTrajectoryPanel extends TrajectoryPanel {
             public void mouseReleased(MouseEvent e) {
                 super.mouseReleased(e);
                 TrajPoint selected = null;
-                for (TrajPoint p : firstPoints) {
-                    if (p.getDrawable().contains(e.getPoint())) {
-                        selected = p;
-                        break;
+                Trajectory selectedT = null;
+                for (Trajectory t: drawables) {
+                    for (TrajPoint p : t.getPoints()) {
+                        if (p.getDrawable().contains(e.getPoint())) {
+                            selected = p;
+                            selectedT = t;
+                            break;
+                        }
                     }
                 }
                 if (selected != null) {
                     if (!shiftPressed) {
-                        doFirstSelection(selected);
+                        doFirstSelection(selected, selectedT);
                     } else {
-                        if (lastResult == null) {
-                            doFirstSelection(selected);
+                        if (lastResult == null || lastResult.getFirst() != selectedT) {
+                            doFirstSelection(selected, selectedT);
                         } else {
+                            SetSystemOracle oracle = oracles.get(0);
+                            for (SetSystemOracle o: oracles){
+                                if (selectedT == o.getFirst()){
+                                    oracle = o;
+                                }
+                            }
                             OracleResult result;
                             if (lastResult.getSubTrajStart().index > selected.index) {
                                 result = oracle.getCoveredBySub(selected.index, lastResult.getSubTrajEnd().index);
@@ -135,7 +146,13 @@ public class SetTrajectoryPanel extends TrajectoryPanel {
                 }
             }
 
-            private void doFirstSelection(TrajPoint selected) {
+            private void doFirstSelection(TrajPoint selected, Trajectory selectedT) {
+                SetSystemOracle oracle = oracles.get(0);
+                for (SetSystemOracle o: oracles){
+                    if (selectedT.index == o.getFirst().index){
+                        oracle = o;
+                    }
+                }
                 OracleResult result = oracle.getCoveredBySub(selected.index, selected.index);
                 if (lastResult != null) {
                     lastResult.setSelected(false);
@@ -152,26 +169,30 @@ public class SetTrajectoryPanel extends TrajectoryPanel {
     }
 
     public void setSelection(){
-        for (TrajPoint current: firstPoints){
-            current.setSelected(false);
-            current.setCovered(false);
+        for (Trajectory t: drawables){
+            t.amountSelected--;
+            for (TrajPoint p: t.getPoints()){
+                p.setSelected(false);
+                p.setCovered(false);
+            }
         }
-        for (TrajPoint current: secondPoints){
-            current.setSelected(false);
-            current.setCovered(false);
-        }
-        for (OracleResult result: selectedResults) {
-            for (int i = 0; i < firstPoints.size(); i++) {
-                TrajPoint current = firstPoints.get(i);
+        for (OracleResult result : selectedResults) {
+            Trajectory first = result.getFirst();
+            for (int i = 0; i < first.getPoints().size(); i++) {
+                TrajPoint current = first.getPoints().get(i);
                 if (i >= result.getSubTrajStart().index && i <= result.getSubTrajEnd().index) {
                     current.setSelected(true);
+                    first.amountSelected++;
+                    current.setCovered(true);
                 }
             }
-            boolean[] covered = result.getCovered();
-            for (int i = 0; i < secondPoints.size(); i++) {
-                TrajPoint current = secondPoints.get(i);
-                if (covered[i]) {
-                    current.setCovered(true);
+            boolean[][] covered = result.getCovered();
+            for (Trajectory t: result.getSelection()) {
+                for (int i = 0; i < t.getPoints().size(); i++) {
+                    TrajPoint current = t.getPoints().get(i);
+                    if (covered[t.index][i]) {
+                        current.setCovered(true);
+                    }
                 }
             }
         }
@@ -179,7 +200,7 @@ public class SetTrajectoryPanel extends TrajectoryPanel {
 
     @Override
     void setCoordinateText(double mouseX, double mouseY) {
-        currentCoord.setText("Current Coordinates of Trajectory 1: (x: "+mouseX+", y: "+mouseY+")");
+        currentCoord.setText("Current Coordinates: (x: "+mouseX+", y: "+mouseY+")");
     }
 
     public void resetSelectedResults(){

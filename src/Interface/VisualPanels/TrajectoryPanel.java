@@ -165,12 +165,12 @@ public class TrajectoryPanel extends VisualPanel{
                         }
                     }
                     double time = currentEdit.getLastTime() + 1;
-                    System.out.println("Making a point at "+mouseX+", "+mouseY+".");
+                    //System.out.println("Making a point at "+mouseX+", "+mouseY+".");
                     TrajPoint newPoint = new TrajPoint(mouseX, mouseY, time);
                     currentEdit.addPoint(newPoint);
                     map.repaint();
                     map.requestFocusInWindow();
-                    newPoint.print();
+                    //newPoint.print();
                 }
             }
         });
