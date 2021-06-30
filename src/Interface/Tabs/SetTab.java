@@ -22,7 +22,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-public class SetTab {
+public class SetTab extends Tab{
     SetTrajectoryPanel visual;
     JTextArea infoText;
     ArrayList<JComponent> interactables;
@@ -78,7 +78,7 @@ public class SetTab {
 
         //Initialization of visual
         JCheckBox showGridBox = new JCheckBox("Show Grid", true);
-        JLabel gridField = new JLabel("Grid Size = 1");
+        JLabel gridField = new JLabel("Units Per Grid Block = 1");
         visual = new SetTrajectoryPanel(gridField, showGridBox, currentField, oracles);
         visual.addMapListeners(visual);
         visual.updateDrawables(selection);
@@ -183,8 +183,8 @@ public class SetTab {
         setPanel.add(bottomPanel, BorderLayout.PAGE_END);
         //dealing with interactables
         this.interactables = interactables;
-
-        mainPane.addTab("Set System " + amount, setPanel);
+        setTitle("Set System " + amount);
+        mainPane.addTab(title, setPanel);
         long tabendtime = System.currentTimeMillis();
         double time = ((double) tabendtime - (double) tabstarttime) / 1000;
         infoText.append("\u2794 Set System Tab " + amount + " initialized in " + time + " seconds.\n\n");
@@ -358,7 +358,7 @@ public class SetTab {
         DFDGrid swap = GridObject[second.index][first.index];
         DFDGrid grid = null;
         if (swap != null){
-            grid = new DFDGrid(first, second, delta, 0, 0, swap.getPointsMatrixSwap(),
+            grid = new DFDGrid(first, second, delta, swap.getPointsMatrixSwap(),
                     swap.getPointsMatrix());
         } else {
             grid = new DFDGrid(first, second, delta, 0, 0);
@@ -369,4 +369,6 @@ public class SetTab {
         infoText.append("     PointMatrix initialized in " + time + " seconds.\n\n");
         infoText.repaint();
     }
+
+
 }

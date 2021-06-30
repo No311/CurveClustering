@@ -2,6 +2,7 @@ package Interface.VisualPanels;
 
 import DataStructures.SetSystemQuerier.OracleResult;
 import DataStructures.SetSystemQuerier.SetSystemOracle;
+import Objects.Arrow;
 import Objects.TrajPoint;
 import Objects.Trajectory;
 
@@ -58,19 +59,23 @@ public class SetTrajectoryPanel extends TrajectoryPanel {
         g2.setStroke(lineStroke);
         TrajPoint lastPoint = null;
         g.setColor(pointsColor);
-        for (TrajPoint p: t.getPoints()){
+        for (int i = t.getPoints().size()-1; i >= 0; i--){
+            TrajPoint p = t.getPoints().get(i);
             p.x = updateX(startx, p.drawOrigX());
             p.y = updateY(starty, p.drawOrigY());
             if (lastPoint != null){
+                Color edgeColor;
                 if (lastPoint.isSelected() && p.isSelected()){
-                    g2.setColor(selectedEColor);
+                    edgeColor = selectedEColor;
                 } else if (lastPoint.isCovered() && p.isCovered()){
-                    g2.setColor(coveredEColor);
+                    edgeColor = coveredEColor;
                 } else {
-                    g2.setColor(trajectoryColor);
+                    edgeColor = trajectoryColor;
                 }
-                g2.draw(new Line2D.Double(lastPoint.x, lastPoint.y, p.x, p.y));
-                g2.setColor(getColor(lastPoint, pointsColor));
+                Arrow arrow = new Arrow(getStandardDist(), size);
+                arrow.updateColors(edgeColor, edgeColor.darker());
+                arrow.updateCoordinates(p.x, p.y, lastPoint.x, lastPoint.y, getStandardDist(), size);
+                arrow.drawArrow(g2);
                 lastPoint.paint(g2, size);
             }
             g2.setColor(getColor(p, pointsColor));

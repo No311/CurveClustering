@@ -213,6 +213,11 @@ class VisualPanel extends JPanel {
         });
     }
 
+
+    public double getStandardDist(){
+        return ((double) (drawsize*step)/UtG);
+    }
+
     public void sizeSliderConfig(VisualPanel panel, JLabel sliderLabel, JSlider sizeSlider) {
         sizeSlider.addChangeListener(e -> {
             panel.setDrawsize(sizeSlider.getValue());

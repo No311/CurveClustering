@@ -81,7 +81,7 @@ public class TrajCoverLog extends TrajCover {
     private GridPoint furthestQuery(GridPoint currentQueryPoint, GridPoint[] pointsOfInterest2,
                                     int left, int right) {
         if (right == left){
-            return pointsOfInterest2[left-1];
+            return pointsOfInterest2[Math.max(left-1, 0)];
         }
         int currentIndex = left + (int) Math.floor((double) (right-left)/2);
         GridPoint currentGoalVertex = pointsOfInterest2[currentIndex];

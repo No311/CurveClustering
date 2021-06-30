@@ -1,6 +1,7 @@
 package Interface.VisualPanels;
 
 import DataStructures.SetSystemQuerier.SetSystemOracle;
+import Objects.Arrow;
 import Objects.GridPoint;
 import Objects.TrajPoint;
 import Objects.Trajectory;
@@ -9,7 +10,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Set;
 
 public class TrajectoryPanel extends VisualPanel{
@@ -68,13 +71,15 @@ public class TrajectoryPanel extends VisualPanel{
         g2.setStroke(lineStroke);
         TrajPoint lastPoint = null;
         g.setColor(pointsColor);
-        for (TrajPoint p: t.getPoints()){
+        for (int i = t.getPoints().size()-1; i >= 0; i--){
+            TrajPoint p = t.getPoints().get(i);
             p.x = updateX(startx, p.drawOrigX());
             p.y = updateY(starty, p.drawOrigY());
             if (lastPoint != null){
-                g2.setColor(trajectoryColor);
-                g2.draw(new Line2D.Double(lastPoint.x, lastPoint.y, p.x, p.y));
-                g2.setColor(pointsColor);
+                Arrow arrow = new Arrow(getStandardDist(), size);
+                arrow.updateColors(trajectoryColor, trajectoryColor.darker());
+                arrow.updateCoordinates(p.x, p.y, lastPoint.x, lastPoint.y, getStandardDist(), size);
+                arrow.drawArrow(g2);
                 lastPoint.paint(g2, size);
             }
             p.paint(g2, size);
@@ -127,7 +132,7 @@ public class TrajectoryPanel extends VisualPanel{
         map.addMouseWheelListener((MouseWheelEvent e) -> {
             int notches = e.getWheelRotation();
             int UtG = map.calculateValues(notches, e.getX(), e.getY());
-            gridField.setText("Grid Size = "+UtG);
+            gridField.setText("Units Per Grid Block = "+UtG);
             gridField.repaint();
             map.repaint();
             map.requestFocusInWindow();

@@ -9,10 +9,11 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 
-public class GridTab {
+public class GridTab extends Tab{
     DFDGridPanel grid;
     JTextArea infoText;
     ArrayList<JComponent> interactables;
+    ArrayList<JComponent> localinteractables = new ArrayList<>();
     int tabnumber = 0;
 
     public ArrayList<JComponent> init(String delta, JList<ListItem> firstList, JList<ListItem> secondList,
@@ -67,12 +68,14 @@ public class GridTab {
             queryReach.setText("<html><center>Reachability<br>Not Prepared</center></html>");
         } else {
             interactables.add(queryReach);
+            localinteractables.add(queryReach);
         }
         if (algo == 0){
             queryAlgo.setEnabled(false);
             queryAlgo.setText("<html><center>Trajectory Coverage<br>Not Prepared</center></html>");
         } else {
             interactables.add(queryAlgo);
+            localinteractables.add(queryAlgo);
         }
         queryReach.addActionListener(new ActionListener() {
             @Override
@@ -143,7 +146,8 @@ public class GridTab {
         //dealing with interactables
         this.interactables = interactables;
 
-        mainPane.addTab("DFD Grid " + gridAmount, gridPanel);
+        setTitle("DFD Grid " + gridAmount);
+        mainPane.addTab(title, gridPanel);
         long endtime = System.currentTimeMillis();
         double time = ((double) endtime - (double) starttime)/1000;
         infoText.append("DFD Grid "+gridAmount+" created between\n     " + firsttraj + " and " + secondtraj + ",\n" +

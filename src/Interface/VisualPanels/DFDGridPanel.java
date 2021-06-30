@@ -97,18 +97,6 @@ public class DFDGridPanel extends VisualPanel {
         }
     }
 
-    private boolean makeEdge(GridPoint newpoint, GridPoint startpoint, boolean optional, double dist){
-        if (startpoint != null){
-            Arrow arrow = new Arrow(getStandardDist(), size);
-            GridEdge newHorEdge = new GridEdge(startpoint, newpoint, optional, dist, arrow);
-            edges.add(newHorEdge);
-            startpoint.addGridEdge(newHorEdge);
-            newpoint.addGridEdge(newHorEdge);
-            return true;
-        }
-        return false;
-    }
-
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         for (GridPoint p: pointlist){
@@ -162,16 +150,18 @@ public class DFDGridPanel extends VisualPanel {
         Stroke lineStroke = new BasicStroke((int) Math.ceil(size/4.0));
         g2.setStroke(lineStroke);
         for (GridEdge edge: edges){
+            Color edgeColor;
             if (edge.getOrigin().getSelected() == 0 || edge.getOrigin().getSelected() == 2){
-                g.setColor(afterEColor);
+                edgeColor = afterEColor;
             } else if (edge.getTarget().getSelected() == 0 || edge.getTarget().getSelected() == 1){
-                g.setColor(beforeEColor);
+                edgeColor = beforeEColor;
             } else {
-                g.setColor(trajectoryColor);
+                edgeColor = trajectoryColor;
             }
             GridPoint o = edge.getOrigin();
             GridPoint t = edge.getTarget();
             edge.getRepresentation().updateCoordinates(o.x, o.y, t.x, t.y, getStandardDist(), size);
+            edge.getRepresentation().updateColors(edgeColor, edgeColor);
             edge.getRepresentation().drawArrow(g2);
         }
         g2.setStroke(oldStroke);
@@ -217,7 +207,8 @@ public class DFDGridPanel extends VisualPanel {
         return Math.min(Math.max((int) -Math.round((((y-origin.y)/gridmul)*UtG)/step), 0), pointmatrix.length-1);
     }
 
-    private double getStandardDist(){
+    @Override
+    public double getStandardDist(){
         return (gridmul*((double) (step)/UtG));
     }
 

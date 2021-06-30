@@ -2,6 +2,7 @@ package Interface;
 import Algorithms.Simplification;
 import Interface.Tabs.GridTab;
 import Interface.Tabs.SetTab;
+import Interface.Tabs.Tab;
 import Interface.VisualPanels.TrajectoryPanel;
 import Interface.Wizards.DFDGridWizard;
 import Interface.GeneralFunctions;
@@ -23,8 +24,7 @@ public class GUIMain {
     ArrayList<Trajectory> selectedTrajectories = new ArrayList<>();
     Trajectory editable = null;
     ArrayList<ListItem> ListData = new ArrayList<>();
-    ArrayList<GridTab> gridTabs = new ArrayList<>();
-    ArrayList<SetTab> setTabs = new ArrayList<>();
+    ArrayList<Tab> tabs = new ArrayList<>();
     ArrayList<JComponent> interactables = new ArrayList<>();
     GeneralFunctions gF = new GeneralFunctions();
     Simplification simple = new Simplification();
@@ -54,7 +54,7 @@ public class GUIMain {
         //initialization of Map
         JCheckBox editBox = new JCheckBox("Editing");
         editBox.setEnabled(false);
-        JLabel gridField = new JLabel("Grid Size = 1");
+        JLabel gridField = new JLabel("Units Per Grid Block = 1");
         JCheckBox showGridBox = new JCheckBox("Show Grid", true);
         JTextField currentField = new JTextField("Current Coordinates: (x: 0, y: 0)");
         TrajectoryPanel map = new TrajectoryPanel(gridField, showGridBox, currentField, editBox);
@@ -414,6 +414,19 @@ public class GUIMain {
         mainPane.addChangeListener(e -> closeTab.setEnabled(mainPane.getSelectedIndex() != 0));
         closeTab.addActionListener(e -> {
             infoText.append("Closed Tab: " + mainPane.getTitleAt(mainPane.getSelectedIndex())+"\n\n");
+            String title = mainPane.getTitleAt(mainPane.getSelectedIndex());
+            Tab toRemove = null;
+            for (Tab t: tabs){
+                if (t.getTitle().equals(title)){
+                    toRemove = t;
+                    break;
+                }
+            }
+            assert toRemove != null;
+            interactables.removeAll(toRemove.getLocalinteractables());
+            tabs.remove(toRemove);
+            System.gc();
+            System.out.println();
             mainPane.remove(mainPane.getSelectedIndex());
 
         });
@@ -444,7 +457,7 @@ public class GUIMain {
                 gF.enable(interactables);
                 gridAmount = gridWizard.getAmount();
                 interactables = gridWizard.getInteractables();
-                gridTabs.addAll(gridWizard.getTabs());
+                tabs.addAll(gridWizard.getTabs());
                 e.getWindow().dispose();
             }
         });
@@ -465,7 +478,7 @@ public class GUIMain {
                 gF.enable(interactables);
                 setAmount = setWizard.getAmount();
                 interactables = setWizard.getInteractables();
-                setTabs.addAll(setWizard.getTabs());
+                tabs.addAll(setWizard.getTabs());
                 e.getWindow().dispose();
             }
         });

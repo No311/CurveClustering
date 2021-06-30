@@ -69,7 +69,7 @@ public class DFDGrid {
         this.pointsMatrixSwap = matrixswap;
     }
 
-    public DFDGrid(Trajectory first, Trajectory second, int threshold, double standardDist, int size,
+    public DFDGrid(Trajectory first, Trajectory second, int threshold,
                    GridPoint[][] matrix, GridPoint[][] matrixswap) {
         this.first = first;
         this.second = second;
@@ -84,10 +84,10 @@ public class DFDGrid {
                              double standardDist, int size){
         if (startpoint != null){
             Arrow arrow = new Arrow(standardDist, size);
-            GridEdge newHorEdge = new GridEdge(startpoint, newpoint, optional, dist, arrow);
-            edgesList.add(newHorEdge);
-            startpoint.addGridEdge(newHorEdge);
-            newpoint.addGridEdge(newHorEdge);
+            GridEdge newEdge = new GridEdge(startpoint, newpoint, optional, dist, arrow);
+            edgesList.add(newEdge);
+            startpoint.addGridEdge(newEdge);
+            newpoint.addGridEdge(newEdge);
             return true;
         }
         return false;
