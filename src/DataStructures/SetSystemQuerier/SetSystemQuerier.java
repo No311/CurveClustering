@@ -1,27 +1,24 @@
 package DataStructures.SetSystemQuerier;
 
 import DataStructures.Reachability.Reachability;
-import DataStructures.TrajCover.TrajCover;
-import Objects.GridPoint;
+import DataStructures.FSGMethods.FSGMethod;
 import Objects.TrajPoint;
 import Objects.Trajectory;
 
-import java.util.ArrayList;
-
 public abstract class SetSystemQuerier {
-    Reachability[] reach;
-    TrajCover[] algo;
+    Reachability reach;
+    FSGMethod algo;
 
-    public SetSystemQuerier(Reachability[] reach, TrajCover[] algo){
+    public SetSystemQuerier(Reachability reach, FSGMethod algo){
         this.reach = reach;
         this.algo = algo;
     }
 
     //returns all points in the selection covered by all subtrajectories of the first trajectory.
-    public abstract SetSystemOracle queryAll(Trajectory first, ArrayList<Trajectory> selection);
+    public abstract boolean[][][] queryAll(Trajectory first, Trajectory second);
 
     //returns all points in the selection covered by the subtrajectory of the first trajectory indicated by
     //the points start and end.
-    public abstract OracleResult queryOne(TrajPoint start, TrajPoint end, Trajectory first,
-                                          ArrayList<Trajectory> selection, String firstName);
+    public abstract boolean[] queryOne(TrajPoint start, TrajPoint end, Trajectory first,
+                                          Trajectory second, String firstName);
 }

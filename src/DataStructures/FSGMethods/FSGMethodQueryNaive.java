@@ -1,23 +1,22 @@
-package DataStructures.TrajCover;
+package DataStructures.FSGMethods;
 
 import DataStructures.Reachability.Reachability;
 import Objects.GridPoint;
 import Objects.Trajectory;
 
-public class TrajCoverNaive extends TrajCover{
+public class FSGMethodQueryNaive extends FSGMethod {
     GridPoint[][][] furthestReach; //furthestReach[row1][row2][column] gives the farthest gridpoint on row 2
                                    //that the gridpoint at coordinates (row1, column) can reach.
     GridPoint[][][] queries; //queries[row1][row2][p] gives a gridpoint with the farthest distance between its
                              //furthestReach gridpoint and it in x-direction that fulfills the query.
-
     GridPoint[][] pointmatrix;
-    Reachability reach;
 
 
 
     @Override
     public void preprocess(GridPoint[][] pointmatrix, Reachability reach, Trajectory first, Trajectory second) {
         super.preprocess(pointmatrix, reach, first, second);
+        computeRow1Reach(null, false);
         furthestReach = new GridPoint[pointmatrix.length][pointmatrix.length][pointmatrix[0].length];
         queries = new GridPoint[pointmatrix.length][pointmatrix.length][pointmatrix[0].length];
         //prepping furthestReach
@@ -46,41 +45,32 @@ public class TrajCoverNaive extends TrajCover{
                 }
             }
         }
-
-        //doing all possible queries
-        for (int srow = 0; srow < pointmatrix.length; srow++){
-            int actualsrow = pointmatrix.length-1-srow;
-            for (int grow = pointmatrix.length-1; grow >= 0; grow--) {
-                for (int p = 0; p < pointmatrix[0].length; p++){
-                    GridPoint bestPoint = null;
-                    int bestDistance = 0;
-                    for (int scol = 0; scol <= p; scol++){
-                        GridPoint start = pointmatrix[actualsrow][scol];
-                        GridPoint goal = furthestReach[srow][grow][scol];
-                        if (start != null && goal != null){
-                            if (goal.column >= p){
-                                int dist = goal.column - scol;
-                                if (dist > bestDistance){
-                                    bestDistance = dist;
-                                    bestPoint = start;
-                                }
-                            }
-                        }
-                    }
-                    queries[srow][grow][p] = bestPoint;
-                }
-            }
-        }
     }
 
     @Override
     public QueryResult query(int qStart, int qEnd, int pColumn) {
-        GridPoint start = queries[qStart][qEnd][pColumn];
-        if (start == null){
+        int actualsrow = pointmatrix.length-1-qStart;
+        GridPoint bestStart = null;
+        GridPoint bestGoal = null;
+        int bestDistance = 0;
+        for (int scol = 0; scol <= pColumn; scol++){
+            GridPoint start = pointmatrix[actualsrow][scol];
+            GridPoint goal = furthestReach[qStart][qEnd][scol];
+            if (start != null && goal != null){
+                if (goal.column >= pColumn){
+                    int dist = goal.column - scol;
+                    if (dist > bestDistance){
+                        bestDistance = dist;
+                        bestStart = start;
+                        bestGoal = goal;
+                    }
+                }
+            }
+        }
+        if (bestStart == null){
             return null;
         }
-        GridPoint goal = furthestReach[qStart][qEnd][start.column];
-        return new QueryResult(start, goal);
+        return new QueryResult(bestStart, bestGoal);
     }
 
     @Override

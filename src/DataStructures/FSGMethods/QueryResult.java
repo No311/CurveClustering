@@ -1,4 +1,4 @@
-package DataStructures.TrajCover;
+package DataStructures.FSGMethods;
 
 import Objects.GridPoint;
 

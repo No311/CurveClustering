@@ -1,20 +1,13 @@
 package Interface.Tabs;
 
 import Algorithms.GreedySetCover;
-import DataStructures.Reachability.Reachability;
-import DataStructures.Reachability.ReachabilityNaive;
 import DataStructures.SetSystemQuerier.*;
-import DataStructures.TrajCover.TrajCover;
-import DataStructures.TrajCover.TrajCoverLog;
-import DataStructures.TrajCover.TrajCoverNaive;
 import Interface.ListItem;
 import Interface.VisualPanels.SetTrajectoryPanel;
 import Interface.WrapLayout;
-import Objects.DFDGrid;
-import Objects.GridPoint;
-import Objects.TrajPoint;
 import Objects.Trajectory;
 import Interface.GeneralFunctions;
+import Methods.SetSystemMethods;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,22 +21,14 @@ public class SetTab extends Tab{
     ArrayList<JComponent> interactables;
     int tabnumber = 0;
     ArrayList<Trajectory> selection = new ArrayList<>();
-    DFDGrid[][] GridObject;
-    Reachability[][] reachabilitiesPerFirst;
-    TrajCover[][] algosPerFirst;
     ArrayList<SetSystemOracle> oracles = new ArrayList<>();
     GeneralFunctions gF = new GeneralFunctions();
-    int reachInt = 0;
-    int algoInt = 0;
-    int queryInt = 0;
-    int delta = 0;
-    int method = 0;
 
     public ArrayList<JComponent> init(String delta, JList<ListItem> selectionList,
                                       int framewidth, JTabbedPane mainPane, JTextArea infoText, int method,
                                       String methodString, int reachInt, int algoInt, int queryInt,
                                       String reachString, String algoString, String queryString,
-                                      int amount, ArrayList<JComponent> interactables) {
+                                      int amount, ArrayList<JComponent> interactables, SetSystemMethods methods) {
         infoText.append("     Initializing Set System Tab " + amount + "\n     Using the " + methodString + " method...\n");
         if (method == 1) {
             infoText.append("     Using " + reachString + " reachability, \n     the " + algoString + " queriable and \n" +
@@ -59,15 +44,8 @@ public class SetTab extends Tab{
             itemT.setSelected(true);
             selection.add(itemT);
         }
-        this.reachInt = reachInt;
-        this.algoInt = algoInt;
-        this.queryInt = queryInt;
-        this.delta = Integer.parseInt(delta);
-        this.method = method;
-        this.GridObject = new DFDGrid[selection.size()][selection.size()];
-        this.reachabilitiesPerFirst = new Reachability[selection.size()][selection.size()];
-        this.algosPerFirst = new TrajCover[selection.size()][selection.size()];
-        this.oracles = initMethod(infoText);
+        this.oracles = methods.initSetSystem(method, Integer.parseInt(delta),
+                reachInt, algoInt, queryInt, selection);
 
         JPanel setPanel = new JPanel(new BorderLayout());
 
@@ -191,184 +169,4 @@ public class SetTab extends Tab{
         infoText.repaint();
         return interactables;
     }
-
-    private SetSystemOracle CoverageInfo(JTextArea infoText, int queryInt, Trajectory first,
-                                         Reachability[] reach, TrajCover[] algo) {
-        long endtime;
-        double time;
-        long starttime;
-        infoText.append("\u2794 Initializing Coverage Information...\n");
-        infoText.repaint();
-        starttime = System.currentTimeMillis();
-        SetSystemQuerier query = null;
-        switch (queryInt) {
-            case 1 -> {
-                query = new EasyQuerier(reach, algo);
-            }
-            case 2 -> {
-                query = new LongJumpQuerier(reach, algo);
-            }
-        }
-        assert query != null;
-        SetSystemOracle result = query.queryAll(first, selection);
-        endtime = System.currentTimeMillis();
-        time = ((double) endtime - (double) starttime) / 1000;
-        infoText.append("     Coverage Information Initialized in " + time + " seconds.\n\n");
-        infoText.repaint();
-        return result;
-    }
-
-    private ArrayList<SetSystemOracle> initMethod(JTextArea infoText) {
-        ArrayList<SetSystemOracle> result = new ArrayList<>();
-        switch (method) {
-            case 0 -> {
-                infoText.append("     Initializing Naive Method...\n");
-                infoText.repaint();
-                ExtremelyNaiveQuerier NaiveMethod = new ExtremelyNaiveQuerier();
-                return NaiveMethod.queryAll(selection, delta);
-            }
-            case 1 -> {
-                infoText.append("     Initializing reachability and queriable information...\n");
-                infoText.repaint();
-                for (int one = 0; one < selection.size(); one++) {
-                    Trajectory first = selection.get(one);
-                    if (first.index == -1) {
-                        first.index = one;
-                    } else {assert first.index == one;}
-                    for (int two = one; two < selection.size(); two++) {
-                        Trajectory second = selection.get(two);
-                        if (second.index == -1) {
-                            second.index = two;
-                        } else {assert second.index == two;}
-                        InitReachAlgo(first, second);
-                    }
-                    result.add(CoverageInfo(infoText, queryInt, first, reachabilitiesPerFirst[first.index],
-                            algosPerFirst[first.index]));
-                }
-            }
-        }
-        return result;
-    }
-
-    private void InitReachAlgo(Trajectory first, Trajectory second) {
-        long endtime;
-        double time;
-        long starttime = System.currentTimeMillis();
-        if (first.index != second.index) {
-            infoText.append("\u2794 Initializing reach and queriable for the pair " +
-                    "(" + first.getName() + ", " + second.getName() + ") both ways...\n");
-        } else {
-            infoText.append("     Initializing reach and queriable for " + first.getName() + "...\n");
-            infoText.repaint();
-        }
-        generateDFDGrid(first, second);
-        if (first.index != second.index){
-            generateDFDGrid(second, first);
-        }
-        initReachability(first, second);
-        if (first.index != second.index) {
-            initReachability(second, first);
-        }
-        initAlgo(first, second);
-        if (first.index != second.index){
-            initAlgo(second, first);
-        }
-        endtime = System.currentTimeMillis();
-        time = ((double) endtime - (double) starttime) / 1000;
-        infoText.append("     Pair Initialized in " + time + " seconds.\n\n");
-        infoText.repaint();
-    }
-
-    private void initAlgo(Trajectory first, Trajectory second){
-        long starttime;
-        long endtime;
-        double time;
-        if (algosPerFirst[first.index][second.index] != null) {
-            infoText.append("     Algorithm ("+first.getName()+", "+second.getName()+") already initialized\n\n");
-            infoText.repaint();
-            return;
-        }
-        infoText.append("     Initializing Algorithm (" + first.getName() + ", " + second.getName() + ")...\n");
-        infoText.repaint();
-        starttime = System.currentTimeMillis();
-        TrajCover algo = null;
-        switch (algoInt) {
-            case 1 -> {
-                algo = new TrajCoverNaive();
-            }
-            case 2 -> {
-                algo = new TrajCoverLog();
-            }
-        }
-        assert algo != null;
-        algo.preprocess(GridObject[first.index][second.index].getPointsMatrix(),
-                reachabilitiesPerFirst[first.index][second.index], first, second);
-        algosPerFirst[first.index][second.index] = algo;
-        endtime = System.currentTimeMillis();
-        time = ((double) endtime - (double) starttime) / 1000;
-        infoText.append("     Algorithm Initialized in " + time + " seconds.\n\n");
-        infoText.repaint();
-    }
-
-    private void initReachability(Trajectory first, Trajectory second) {
-        long starttime;
-        long endtime;
-        double time;
-        if (reachabilitiesPerFirst[first.index][second.index] != null) {
-            infoText.append("     Reachability ("+first.getName()+", "+second.getName()+") already initialized\n\n");
-            infoText.repaint();
-            return;
-        }
-        infoText.append("     Initializing Reachability (" + first.getName() + ", " + second.getName() + ")...\n");
-        infoText.repaint();
-        starttime = System.currentTimeMillis();
-        Reachability reach = null;
-        switch (reachInt) {
-            case 1 -> {
-                reach = new ReachabilityNaive();
-            }
-        }
-        assert reach != null;
-        Reachability swapReach = reachabilitiesPerFirst[second.index][first.index];
-        if (swapReach != null){
-            reach.set(GridObject[first.index][second.index].getPointsMatrix(), swapReach.getSwapped(),
-                    swapReach.getReachMatrix());
-        } else {
-            reach.preprocess(GridObject[first.index][second.index].getPointsMatrix(), first, second);
-        }
-        reachabilitiesPerFirst[first.index][second.index] = reach;
-        endtime = System.currentTimeMillis();
-        time = ((double) endtime - (double) starttime) / 1000;
-        infoText.append("     Reachability Initialized in " + time + " seconds.\n\n");
-    }
-
-    private void generateDFDGrid(Trajectory first, Trajectory second) {
-        long starttime;
-        long endtime;
-        double time;
-        if (GridObject[first.index][second.index] != null) {
-            infoText.append("     DFDGrid (" + first.getName() + ", " + second.getName() + ") already initialized\n\n");
-            infoText.repaint();
-            return;
-        }
-        infoText.append("     Initializing PointMatrix for DFD Grid," +
-                "("+ first.getName()+", "+ second.getName()+")\n");
-        infoText.repaint();
-        starttime = System.currentTimeMillis();
-        DFDGrid swap = GridObject[second.index][first.index];
-        DFDGrid grid = null;
-        if (swap != null){
-            grid = new DFDGrid(first, second, delta, swap.getPointsMatrixSwap(),
-                    swap.getPointsMatrix());
-        } else {
-            grid = new DFDGrid(first, second, delta, 0, 0);
-        }
-        GridObject[first.index][second.index] = grid;
-        endtime = System.currentTimeMillis();
-        time = ((double) endtime - (double) starttime) / 1000;
-        infoText.append("     PointMatrix initialized in " + time + " seconds.\n\n");
-        infoText.repaint();
-    }
-
-
 }

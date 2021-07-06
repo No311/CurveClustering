@@ -9,7 +9,7 @@ public abstract class Reachability {
     boolean[][][][] reachmatrixswap; //can the first two coordinates reach the second two coordinates?
     //with trajectory 2 as first trajectory and trajectory 1 as second trajectory
 
-    abstract public void preprocess(GridPoint[][] pointmatrix, Trajectory first, Trajectory second);
+    abstract public void preprocess(GridPoint[][] pointmatrix, Trajectory first, Trajectory second, boolean visual);
 
     abstract public boolean query(GridPoint start, GridPoint goal);
 

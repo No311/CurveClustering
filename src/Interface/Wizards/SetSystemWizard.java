@@ -2,29 +2,21 @@ package Interface.Wizards;
 
 import Interface.GeneralFunctions;
 import Interface.ListItem;
-import Interface.Tabs.GridTab;
 import Interface.Tabs.SetTab;
-import Interface.VisualPanels.TrajectoryPanel;
+import Interface.Tabs.Tab;
 import Interface.WrapLayout;
-import Objects.Trajectory;
+import Methods.SetSystemMethods;
+import Objects.NamedInt;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 
-public class SetSystemWizard {
-    ArrayList<JComponent> interactables;
-    int amount;
-    ArrayList<SetTab> tabs = new ArrayList<>();
-    boolean wizardCancel = true;
-    GeneralFunctions gF = new GeneralFunctions();
-    JFrame frame;
-
+public class SetSystemWizard extends Wizard{
+    @Override
     public void init(JList<ListItem> selection, JTextArea infoText, JTabbedPane mainPane,
-                     ArrayList<JComponent> interactables, int setAmount, int framewidth){
+                     ArrayList<JComponent> interactables, int setAmount, int framewidth, SetSystemMethods methods){
         this.interactables = interactables;
         this.amount = setAmount;
         ArrayList<JCheckBox> reachBoxes = new ArrayList<>();
@@ -43,13 +35,16 @@ public class SetSystemWizard {
         JPanel queryPanel = new JPanel(new BorderLayout());
         JPanel listsPanel = new JPanel(new GridLayout(1,1));
         JPanel methodWrapper = new JPanel(new BorderLayout());
-        JPanel methodPanel = new JPanel(new GridLayout(2, 1));
+        JPanel methodPanel = new JPanel(new BorderLayout());
         JPanel NaivePanel = new JPanel(new BorderLayout());
-        JPanel DFDPanel = new JPanel(new GridLayout(2, 1));
+        JPanel DFDPanel = new JPanel(new BorderLayout());
         JPanel DFDMainPanel = new JPanel(new BorderLayout());
         JPanel DFDOptionsPanel = new JPanel(new GridLayout(1, 3));
         JPanel reachCheckBoxPanel = new JPanel(new FlowLayout());
-        JPanel algoCheckBoxPanel = new JPanel(new FlowLayout());
+        JPanel algoCheckBoxPanel = new JPanel(new GridLayout(3,1));
+        JPanel algoCheckBoxPanel1 = new JPanel(new FlowLayout());
+        JPanel algoCheckBoxPanel2 = new JPanel(new FlowLayout());
+        JPanel algoCheckBoxPanel3 = new JPanel(new FlowLayout());
         JPanel queryCheckBoxPanel = new JPanel(new FlowLayout());
 
         JPanel buttonPanel = new JPanel(new WrapLayout());
@@ -90,16 +85,31 @@ public class SetSystemWizard {
         reachPanel.setBorder(BorderFactory.createEtchedBorder());
 
         //Everything AlgoPanel and AlgoCheckBoxPanel
-        JLabel algoLabel = new JLabel("Data Structure to prepare:", SwingConstants.CENTER);
-        JCheckBox naiveAlgo = new JCheckBox("Naive", false);
+        JLabel algoLabel = new JLabel("FSG Structures to prepare:", SwingConstants.CENTER);
+        JCheckBox naivePrepAlgo = new JCheckBox("Naive Prep", false);
         JCheckBox logAlgo = new JCheckBox("Log Query", false);
-        naiveAlgo.setActionCommand("algoNaive");
+        JCheckBox noOptAlgo = new JCheckBox("Log Query (No Opt)", false);
+        JCheckBox noPrepAlgo = new JCheckBox("Naive No Prep", false);
+        JCheckBox naiveQueryAlgo = new JCheckBox("Naive Log Query", false);
+        naivePrepAlgo.setActionCommand("algoNaivePrep");
         logAlgo.setActionCommand("algoLog");
-        algoCheckBoxInit(naiveAlgo, algoBoxes, queryBoxes, algoEnabled, queryEnabled);
+        noOptAlgo.setActionCommand("algoNoOpt");
+        noPrepAlgo.setActionCommand("algoNoPrep");
+        naiveQueryAlgo.setActionCommand("algoNaiveLog");
+        algoCheckBoxInit(naivePrepAlgo, algoBoxes, queryBoxes, algoEnabled, queryEnabled);
         algoCheckBoxInit(logAlgo, algoBoxes, queryBoxes, algoEnabled, queryEnabled);
+        algoCheckBoxInit(noOptAlgo, algoBoxes, queryBoxes, algoEnabled, queryEnabled);
+        algoCheckBoxInit(noPrepAlgo, algoBoxes, queryBoxes, algoEnabled, queryEnabled);
+        algoCheckBoxInit(naiveQueryAlgo, algoBoxes, queryBoxes, algoEnabled, queryEnabled);
         algoPanel.add(algoLabel, BorderLayout.PAGE_START);
-        algoCheckBoxPanel.add(naiveAlgo);
-        algoCheckBoxPanel.add(logAlgo);
+        algoCheckBoxPanel1.add(naivePrepAlgo);
+        algoCheckBoxPanel1.add(noPrepAlgo);
+        algoCheckBoxPanel2.add(naiveQueryAlgo);
+        algoCheckBoxPanel2.add(logAlgo);
+        algoCheckBoxPanel3.add(noOptAlgo);
+        algoCheckBoxPanel.add(algoCheckBoxPanel1);
+        algoCheckBoxPanel.add(algoCheckBoxPanel2);
+        algoCheckBoxPanel.add(algoCheckBoxPanel3);
         algoPanel.add(algoCheckBoxPanel, BorderLayout.CENTER);
         algoPanel.setBorder(BorderFactory.createEtchedBorder());
 
@@ -139,13 +149,13 @@ public class SetSystemWizard {
 
         //Everything DFDMethod
         DFDPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.BLACK),"The Discrete Fréchet Distance Method:"));
-        DFDPanel.add(DFDMainPanel, 0);
-        DFDPanel.add(DFDOptionsPanel, 1);
+                BorderFactory.createLineBorder(Color.BLACK),"The Free Space Grid Method:"));
+        DFDPanel.add(DFDMainPanel, BorderLayout.PAGE_START);
+        DFDPanel.add(DFDOptionsPanel, BorderLayout.CENTER);
 
         //Everything MethodPanel
-        methodPanel.add(NaivePanel);
-        methodPanel.add(DFDPanel);
+        methodPanel.add(NaivePanel, BorderLayout.PAGE_START);
+        methodPanel.add(DFDPanel, BorderLayout.CENTER);
 
         //Everything methodWrapper
         JLabel methodLabel = new JLabel("Choose the Method");
@@ -153,35 +163,25 @@ public class SetSystemWizard {
         methodWrapper.add(methodPanel);
 
         //Everything ButtonPanel
-        JButton confirm = new JButton("Initialize Set System");
-        JLabel deltaLabel = new JLabel("thresholds (separated by comma): ");
-        JTextField deltaField = new JTextField("");
-        deltaField.setEditable(false);
-        deltaField.setColumns(3);
+        JButton confirm = new JButton();
+        ArrayList<JTextField> buttonFields = initButtonsPanel(buttonPanel, confirm, choiceBoxes);
         confirm.setEnabled(false);
-//        String warning = "Warning: All combinations of Reachability Structures,\n" +
-//                "Data Structures and thresholds get processed to their own tab.\n" +
-//                "Do not select too many structures or add too many thresholds at once.";
-//        JTextArea warningLabel = new JTextArea();
-//        warningLabel.setLineWrap(true);
-//        warningLabel.setColumns(20);
-//        warningLabel.setEditable(false);
-//        warningLabel.setText(warning);
-        buttonPanel.add(deltaLabel);
-        buttonPanel.add(deltaField);
-//        buttonPanel.add(warningLabel);
         buttonPanel.add(confirm);
+        gF.buttonChoiceDependency(confirm, buttonFields.get(0), (String s) -> !s.equals("") && s.matches("^[\\d\\s,]*$"),
+                choiceBoxes);
+        ConfirmActionListener(infoText, mainPane, framewidth,
+                methods, reachEnabled, algoEnabled, queryEnabled,
+                NaiveBoxes, selectionList, nMethodBox, DFDMethodBox,
+                buttonFields, confirm);
+
 
         optionsPanel.add(methodPanel, BorderLayout.PAGE_START);
         optionsPanel.add(buttonPanel, BorderLayout.PAGE_END);
 
         //listeners
-        selectionList.addListSelectionListener(e -> deltaField.setEditable(selectionList.getSelectedIndices().length != 0));
-        gF.buttonChoiceDependency(confirm, deltaField, (String s) -> !s.equals("") && s.matches("^[\\d\\s,]*$"),
-                choiceBoxes);
-        confirm.addActionListener(e -> createSetTabs(deltaField, selectionList,
-                nMethodBox, NaiveBoxes, DFDMethodBox, frame, mainPane, infoText,
-                reachEnabled, algoEnabled, queryEnabled, framewidth));
+        selectionList.addListSelectionListener(e -> buttonFields.get(0).
+                setEditable(selectionList.getSelectedIndices().length != 0));
+
         listsPanel.add(selectionListPanel);
 
         backPanel.add(listsPanel);
@@ -192,12 +192,37 @@ public class SetSystemWizard {
         frame.pack();
     }
 
-    private void createSetTabs(JTextField deltaField, JList<ListItem> selectionList,
-                               JCheckBox nMethodBox, ArrayList<JCheckBox> naiveBoxes, JCheckBox DFDMethodBox,
-                               JFrame frame, JTabbedPane mainPane, JTextArea infoText,
-                               ArrayList<JCheckBox> reachEnabled, ArrayList<JCheckBox> algoEnabled,
-                               ArrayList<JCheckBox> queryEnabled, int framewidth) {
-        String deltatext = deltaField.getText().replaceAll("\\s", "");
+    void ConfirmActionListener(JTextArea infoText, JTabbedPane mainPane, int framewidth,
+                                       SetSystemMethods methods, ArrayList<JCheckBox> reachEnabled,
+                                       ArrayList<JCheckBox> algoEnabled, ArrayList<JCheckBox> queryEnabled,
+                                       ArrayList<JCheckBox> NaiveBoxes, JList<ListItem> selectionList,
+                                       JCheckBox nMethodBox, JCheckBox DFDMethodBox, ArrayList<JTextField> buttonFields,
+                                       JButton confirm) {
+        confirm.addActionListener(e -> initiate(selectionList,
+                nMethodBox, NaiveBoxes, DFDMethodBox, frame, mainPane, infoText,
+                reachEnabled, algoEnabled, queryEnabled, framewidth, methods, buttonFields));
+    }
+
+    ArrayList<JTextField> initButtonsPanel(JPanel buttonPanel, JButton confirm, ArrayList<JCheckBox> choiceBoxes){
+        confirm.setText("Initialize Set System");
+        ArrayList<JTextField> result = new ArrayList<>();
+        JLabel deltaLabel = new JLabel("thresholds (separated by comma): ");
+        JTextField deltaField = new JTextField("");
+        deltaField.setEditable(false);
+        deltaField.setColumns(3);
+        result.add(deltaField);
+        buttonPanel.add(deltaLabel);
+        buttonPanel.add(deltaField);
+        return result;
+    }
+
+
+    private void initiate(JList<ListItem> selectionList, JCheckBox nMethodBox, ArrayList<JCheckBox> naiveBoxes,
+                          JCheckBox DFDMethodBox, JFrame frame, JTabbedPane mainPane, JTextArea infoText,
+                          ArrayList<JCheckBox> reachEnabled, ArrayList<JCheckBox> algoEnabled,
+                          ArrayList<JCheckBox> queryEnabled, int framewidth, SetSystemMethods methods,
+                          ArrayList<JTextField> buttonFields) {
+        String deltatext = buttonFields.get(0).getText().replaceAll("\\s", "");
         String[] deltas = deltatext.split(",");
         if (!(selectionList.getSelectedValue().getT().hasPoints())){
             infoText.append("     No selected trajectories.\nProcess Cancelled.");
@@ -210,62 +235,23 @@ public class SetSystemWizard {
         if (nMethodBox.isSelected()){
             methodString = "Naive";
             for (String delta: deltas){
-                SetTab newSetTab = new SetTab();
-                interactables = newSetTab.init(delta, selectionList, framewidth, mainPane,
-                        infoText, method, methodString, -1, -1, -1, "",
-                        "", "", amount, interactables);
-                amount++;
-                tabs.add(newSetTab);
+                initiateNaive(selectionList, mainPane, infoText, framewidth, methods, methodString, method, delta, buttonFields);
             }
         }
         if (DFDMethodBox.isSelected()) {
             method = 1;
             methodString = "DFD";
             for (String delta : deltas) {
-                String reachString = "no";
-                String algoString = "no";
-                String queryString = "no";
                 if (!reachEnabled.isEmpty()) {
                     for (JCheckBox reach : reachEnabled) {
-                        int reachInt = 0;
-                        switch (reach.getActionCommand()) {
-                            case "reachNaive" -> {
-                                reachInt = 1;
-                                reachString = "naive";
-                            }
-                        }
+                        NamedInt reachInfo = gF.getReachInfo(reach);
                         if (!algoEnabled.isEmpty()) {
                             for (JCheckBox algo : algoEnabled) {
-                                int algoInt = 0;
-                                switch (algo.getActionCommand()) {
-                                    case "algoNaive" -> {
-                                        algoInt = 1;
-                                        algoString = "naive";
-                                    }
-                                    case "algoLog" -> {
-                                        algoInt = 2;
-                                        algoString = "Log Query";
-                                    }
-                                }
+                                NamedInt algoInfo = gF.getAlgoInfo(algo);
                                 if (!queryEnabled.isEmpty()) {
                                     for (JCheckBox query : queryEnabled) {
-                                        int queryInt = 0;
-                                        switch (query.getActionCommand()) {
-                                            case "queryNaive" -> {
-                                                queryInt = 1;
-                                                queryString = "naive";
-                                            }
-                                            case "queryLongjump" -> {
-                                                queryInt = 2;
-                                                queryString = "Long Jump";
-                                            }
-                                        }
-                                        SetTab newSetTab = new SetTab();
-                                        interactables = newSetTab.init(delta, selectionList, framewidth, mainPane,
-                                                infoText, method, methodString, reachInt, algoInt, queryInt, reachString,
-                                                algoString, queryString, amount, interactables);
-                                        amount++;
-                                        tabs.add(newSetTab);
+                                        NamedInt queryInfo = gF.getQueryInfo(query);
+                                        initiateFSG(selectionList, mainPane, infoText, framewidth, methods, methodString, method, delta, reachInfo, algoInfo, queryInfo, buttonFields);
                                     }
                                 }
                             }
@@ -279,7 +265,30 @@ public class SetSystemWizard {
             }
         }
         wizardCancel = false;
+        System.gc();
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+    }
+
+    void initiateFSG(JList<ListItem> selectionList, JTabbedPane mainPane, JTextArea infoText, int framewidth,
+                     SetSystemMethods methods, String methodString, int method, String delta, NamedInt reachInfo,
+                     NamedInt algoInfo, NamedInt queryInfo, ArrayList<JTextField> buttonFields) {
+        SetTab newSetTab = new SetTab();
+        interactables = newSetTab.init(delta, selectionList, framewidth, mainPane,
+                infoText, method, methodString, reachInfo.number, algoInfo.number, queryInfo.number,
+                reachInfo.name, algoInfo.name, queryInfo.name, amount, interactables, methods);
+        amount++;
+        tabs.add(newSetTab);
+    }
+
+    void initiateNaive(JList<ListItem> selectionList, JTabbedPane mainPane, JTextArea infoText,
+                       int framewidth, SetSystemMethods methods, String methodString, int method, String delta,
+                       ArrayList<JTextField> buttonFields) {
+        SetTab newSetTab = new SetTab();
+        interactables = newSetTab.init(delta, selectionList, framewidth, mainPane,
+                infoText, method, methodString, -1, -1, -1, "",
+                "", "", amount, interactables, methods);
+        amount++;
+        tabs.add(newSetTab);
     }
 
     private void methodCheckBoxInit(JCheckBox methodEnableBox, ArrayList<ArrayList<JCheckBox>> enableBoxes,
@@ -369,26 +378,6 @@ public class SetSystemWizard {
                 queryEnabled.remove(checkBox);
             }
         });
-    }
-
-    public ArrayList<JComponent> getInteractables() {
-        return interactables;
-    }
-
-    public int getAmount() {
-        return amount;
-    }
-
-    public ArrayList<SetTab> getTabs() {
-        return tabs;
-    }
-
-    public boolean isWizardCancel() {
-        return wizardCancel;
-    }
-
-    public JFrame getFrame() {
-        return frame;
     }
 
 }

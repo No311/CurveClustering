@@ -3,22 +3,22 @@ package Interface.Wizards;
 import Interface.GeneralFunctions;
 import Interface.ListItem;
 import Interface.Tabs.GridTab;
+import Interface.Tabs.Tab;
 import Interface.WrapLayout;
+import Methods.SetSystemMethods;
+import Objects.NamedInt;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 
-public class DFDGridWizard {
-    ArrayList<JComponent> interactables;
-    int amount;
-    ArrayList<GridTab> tabs = new ArrayList<>();
-    boolean wizardCancel = true;
-    GeneralFunctions gF = new GeneralFunctions();
-    JFrame frame;
+public class DFDGridWizard extends Wizard{
+
+
+    @Override
     public void init(JList<ListItem> selectionList, JTextArea infoText, JTabbedPane mainPane,
-                     ArrayList<JComponent> interactables, int gridAmount, int framewidth){
+                     ArrayList<JComponent> interactables, int gridAmount, int framewidth, SetSystemMethods methods){
         this.interactables = interactables;
         this.amount = gridAmount;
         ArrayList<JCheckBox> reachBoxes = new ArrayList<>();
@@ -74,16 +74,28 @@ public class DFDGridWizard {
         reachPanel.add(reachCheckBoxPanel, BorderLayout.CENTER);
 
         //Everything AlgoPanel and AlgoCheckBoxPanel
-        JLabel algoLabel = new JLabel("Data Structures to prepare:", SwingConstants.CENTER);
-        JCheckBox naiveAlgo = new JCheckBox("Naive", false);
+        JLabel algoLabel = new JLabel("FSG Structures to prepare:", SwingConstants.CENTER);
+        JCheckBox naivePrepAlgo = new JCheckBox("Naive Prep", false);
         JCheckBox logAlgo = new JCheckBox("Log Query", false);
-        naiveAlgo.setActionCommand("algoNaive");
+        JCheckBox noOptAlgo = new JCheckBox("Log Query (No Opt)", false);
+        JCheckBox noPrepAlgo = new JCheckBox("Naive No Prep", false);
+        JCheckBox naiveQueryAlgo = new JCheckBox("Naive Log Query", false);
+        naivePrepAlgo.setActionCommand("algoNaivePrep");
         logAlgo.setActionCommand("algoLog");
-        algoCheckBoxInit(naiveAlgo, algoBoxes, algoEnabled);
+        noOptAlgo.setActionCommand("algoNoOpt");
+        noPrepAlgo.setActionCommand("algoNoPrep");
+        naiveQueryAlgo.setActionCommand("algoNaiveLog");
+        algoCheckBoxInit(naivePrepAlgo, algoBoxes, algoEnabled);
         algoCheckBoxInit(logAlgo, algoBoxes, algoEnabled);
+        algoCheckBoxInit(noPrepAlgo, algoBoxes, algoEnabled);
+        algoCheckBoxInit(naiveQueryAlgo, algoBoxes, algoEnabled);
+        algoCheckBoxInit(noOptAlgo, algoBoxes, algoEnabled);
         algoPanel.add(algoLabel, BorderLayout.PAGE_START);
-        algoCheckBoxPanel.add(naiveAlgo);
+        algoCheckBoxPanel.add(naivePrepAlgo);
+        algoCheckBoxPanel.add(noPrepAlgo);
+        algoCheckBoxPanel.add(naiveQueryAlgo);
         algoCheckBoxPanel.add(logAlgo);
+        algoCheckBoxPanel.add(noOptAlgo);
         algoPanel.add(algoCheckBoxPanel, BorderLayout.CENTER);
 
 
@@ -122,7 +134,7 @@ public class DFDGridWizard {
                 secondList.getSelectedIndices().length != 0));
         gF.buttonDependency(confirm, deltaField, (String s) -> !s.equals("") && s.matches("^[\\d\\s,]*$"));
         confirm.addActionListener(e -> createGridTabs(deltaField, firstList, secondList, frame, mainPane, infoText,
-                reachEnabled, algoEnabled, framewidth));
+                reachEnabled, algoEnabled, framewidth, methods));
         listsPanel.add(firstListPanel, 0);
         listsPanel.add(secondListPanel, 1);
 
@@ -136,7 +148,8 @@ public class DFDGridWizard {
 
     private void createGridTabs(JTextField deltaField, JList<ListItem> firstList, JList<ListItem> secondList,
                                 JFrame frame, JTabbedPane mainPane, JTextArea infoText,
-                                ArrayList<JCheckBox> reachEnabled, ArrayList<JCheckBox> algoEnabled, int framewidth){
+                                ArrayList<JCheckBox> reachEnabled, ArrayList<JCheckBox> algoEnabled, int framewidth,
+                                SetSystemMethods methods){
         String deltatext = deltaField.getText().replaceAll("\\s", "");
         String[] deltas = deltatext.split(",");
         if (!(firstList.getSelectedValue().getT().hasPoints() && secondList.getSelectedValue().getT().hasPoints())){
@@ -145,42 +158,24 @@ public class DFDGridWizard {
             frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
             return;
         }
-
         for (String delta: deltas){
-            String reachString = "no";
-            String algoString = "no";
             if (!reachEnabled.isEmpty()){
                 for (JCheckBox reach: reachEnabled) {
-                    int reachInt = 0;
-                    switch (reach.getActionCommand()) {
-                        case "reachNaive" -> {
-                            reachInt = 1;
-                            reachString = "naive";
-                        }
-                    }
+                    NamedInt reachInfo = gF.getReachInfo(reach);
                     if (!algoEnabled.isEmpty()) {
                         for (JCheckBox algo: algoEnabled) {
-                            int algoInt = 0;
-                            switch (algo.getActionCommand()) {
-                                case "algoNaive" -> {
-                                    algoInt = 1;
-                                    algoString = "naive";
-                                }
-                                case "algoLog" -> {
-                                    algoInt = 2;
-                                    algoString = "Log Query";
-                                }
-                            }
+                            NamedInt algoInfo = gF.getAlgoInfo(algo);
                             GridTab newGridTab = new GridTab();
                             interactables = newGridTab.init(delta, firstList, secondList, framewidth, mainPane,
-                                    infoText, reachInt, algoInt, reachString, algoString, amount, interactables);
+                                    infoText, reachInfo.number, algoInfo.number, reachInfo.name, algoInfo.name, amount, interactables,
+                                    methods);
                             amount++;
                             tabs.add(newGridTab);
                         }
                     } else {
                         GridTab newGridTab = new GridTab();
                         interactables = newGridTab.init(delta, firstList, secondList, framewidth, mainPane, infoText,
-                                reachInt, 0, reachString, algoString, amount, interactables);
+                                reachInfo.number, 0, reachInfo.name, "no", amount, interactables, methods);
                         amount++;
                         tabs.add(newGridTab);
                     }
@@ -188,13 +183,14 @@ public class DFDGridWizard {
             } else {
                 GridTab newGridTab = new GridTab();
                 interactables = newGridTab.init(delta, firstList, secondList, framewidth, mainPane, infoText,
-                        0, 0, reachString, algoString, amount, interactables);
+                        0, 0, "no", "no", amount, interactables, methods);
                 amount++;
                 tabs.add(newGridTab);
             }
         }
-        for (GridTab g : tabs) {
-            g.updateInteractables(interactables);
+        for (Tab g : tabs) {
+            GridTab ag = (GridTab) g;
+            ag.updateInteractables(interactables);
         }
         wizardCancel = false;
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
@@ -234,23 +230,5 @@ public class DFDGridWizard {
         });
     }
 
-    public ArrayList<JComponent> getInteractables() {
-        return interactables;
-    }
 
-    public int getAmount() {
-        return amount;
-    }
-
-    public ArrayList<GridTab> getTabs() {
-        return tabs;
-    }
-
-    public boolean isWizardCancel() {
-        return wizardCancel;
-    }
-
-    public JFrame getFrame() {
-        return frame;
-    }
 }

@@ -13,7 +13,8 @@ public class ListItem {
     }
 
     public String toString() {
-        return label;
+        String l = label + " ("+t.getPoints().size()+")";
+        return l;
     }
 
     public Trajectory getT() {

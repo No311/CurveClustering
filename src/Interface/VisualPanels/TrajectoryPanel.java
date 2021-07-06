@@ -1,6 +1,7 @@
 package Interface.VisualPanels;
 
 import DataStructures.SetSystemQuerier.SetSystemOracle;
+import Interface.ListItem;
 import Objects.Arrow;
 import Objects.GridPoint;
 import Objects.TrajPoint;
@@ -27,6 +28,7 @@ public class TrajectoryPanel extends VisualPanel{
     boolean altPressed = false;
     boolean controlPressed = false;
     Trajectory currentEdit;
+    ArrayList<JList<ListItem>> editRedrawables = new ArrayList<>();
 
     public TrajectoryPanel(JLabel gridField, JCheckBox showGridBox, JTextField currentField, JCheckBox editBox){
         this.gridField = gridField;
@@ -157,6 +159,9 @@ public class TrajectoryPanel extends VisualPanel{
                             starty = 0;
                         }
                     }
+                    for (JList<ListItem> l: editRedrawables){
+                        l.repaint();
+                    }
                     map.repaint();
                     map.requestFocusInWindow();
                 }
@@ -173,9 +178,11 @@ public class TrajectoryPanel extends VisualPanel{
                     //System.out.println("Making a point at "+mouseX+", "+mouseY+".");
                     TrajPoint newPoint = new TrajPoint(mouseX, mouseY, time);
                     currentEdit.addPoint(newPoint);
+                    for (JList<ListItem> l: editRedrawables){
+                        l.repaint();
+                    }
                     map.repaint();
                     map.requestFocusInWindow();
-                    //newPoint.print();
                 }
             }
         });
@@ -205,6 +212,12 @@ public class TrajectoryPanel extends VisualPanel{
 
     void setCoordinateText(double mouseX, double mouseY) {
         currentCoord.setText("Current Coordinates: (x: "+mouseX+", y: "+mouseY+")");
+    }
+
+    public void setEditRedrawables(JList<ListItem> selectionList, JList<ListItem> editList){
+        editRedrawables = new ArrayList<>();
+        editRedrawables.add(selectionList);
+        editRedrawables.add(editList);
     }
 
     public Trajectory getCurrentEdit() {

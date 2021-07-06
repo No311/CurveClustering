@@ -3,6 +3,7 @@ package Interface.Tabs;
 import Interface.ListItem;
 import Interface.VisualPanels.DFDGridPanel;
 import Interface.WrapLayout;
+import Methods.SetSystemMethods;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +19,8 @@ public class GridTab extends Tab{
 
     public ArrayList<JComponent> init(String delta, JList<ListItem> firstList, JList<ListItem> secondList,
                                       int framewidth, JTabbedPane mainPane, JTextArea infoText, int reach, int algo,
-                                      String reachString, String algoString, int gridAmount, ArrayList<JComponent> interactables) {
+                                      String reachString, String algoString, int gridAmount,
+                                      ArrayList<JComponent> interactables, SetSystemMethods methods) {
         long starttime = System.currentTimeMillis();
         this.infoText = infoText;
         this.tabnumber = gridAmount;
@@ -44,7 +46,7 @@ public class GridTab extends Tab{
         JLabel gridField = new JLabel("Grid Size = 1");
         grid = new DFDGridPanel(Integer.parseInt(delta),
                 firstList.getSelectedValue().getT(), secondList.getSelectedValue().getT(), reach, algo, gridField,
-                showGridBox, currentField, selectedField, infoText);
+                showGridBox, currentField, selectedField, infoText, methods);
 
         //everything TrajectoryPanel
         JPanel trajectoryPanel = new JPanel();

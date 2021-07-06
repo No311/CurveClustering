@@ -1,18 +1,15 @@
 package Interface.VisualPanels;
 
 import DataStructures.Reachability.Reachability;
-import DataStructures.Reachability.ReachabilityNaive;
-import DataStructures.TrajCover.QueryResult;
-import DataStructures.TrajCover.TrajCover;
-import DataStructures.TrajCover.TrajCoverLog;
-import DataStructures.TrajCover.TrajCoverNaive;
+import DataStructures.FSGMethods.QueryResult;
+import DataStructures.FSGMethods.FSGMethod;
+import Methods.SetSystemMethods;
 import Objects.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -34,7 +31,7 @@ public class DFDGridPanel extends VisualPanel {
     private int gridmul = 10;
     private Reachability reachdata;
     public double reachinittime;
-    private TrajCover algodata;
+    private FSGMethod algodata;
     public double algoinittime;
     private int querymode = 0; //0 = none, 1 = reach, 2 = algo
     private GridPoint[] reachquery = new GridPoint[2];
@@ -52,7 +49,7 @@ public class DFDGridPanel extends VisualPanel {
 
     public DFDGridPanel(int threshold, Trajectory first, Trajectory second, int reach, int algo,
                         JLabel gridField, JCheckBox showGridBox, JLabel currentCoord, JLabel selectedCoord,
-                        JTextArea infoText) {
+                        JTextArea infoText, SetSystemMethods methods) {
         super();
         super.setZoomable(true);
         super.setShowGrid(false);
@@ -65,35 +62,20 @@ public class DFDGridPanel extends VisualPanel {
         this.currentCoord = currentCoord;
         this.selectedCoord = selectedCoord;
         this.infoText = infoText;
-        switch (reach) {
-            case 0 -> reachdata = null;
-            case 1 -> reachdata = new ReachabilityNaive();
-        }
-        switch (algo) {
-            case 0 -> algodata = null;
-            case 1 -> algodata = new TrajCoverNaive();
-            case 2 -> algodata = new TrajCoverLog();
-        }
-        initDFDGrid();
+        initDFDGrid(methods, reach, algo);
     }
 
-    private void initDFDGrid() {
+    private void initDFDGrid(SetSystemMethods methods, int reachInt, int algoInt) {
         GridObject = new DFDGrid(first, second, threshold, getStandardDist(), size);
         pointmatrix = GridObject.getPointsMatrix();
         pointlist = GridObject.getPointList();
         edges = GridObject.getEdgesList();
         rowmax = GridObject.getRowmax();
-        if (reachdata != null){
-            long starttime = System.currentTimeMillis();
-            reachdata.preprocess(pointmatrix, first, second);
-            long endtime = System.currentTimeMillis();
-            reachinittime = ((double) endtime - (double) starttime)/1000;
+        if (reachInt != 0) {
+            reachdata = methods.initReach(first, second, reachInt, GridObject, true);
         }
-        if (algodata != null){
-            long starttime = System.currentTimeMillis();
-            algodata.preprocess(pointmatrix, reachdata, first, second);
-            long endtime = System.currentTimeMillis();
-            algoinittime = ((double) endtime - (double) starttime)/1000;
+        if (reachdata != null && algoInt != 0) {
+            algodata = methods.initAlgo(first, second, algoInt, reachdata, GridObject);
         }
     }
 

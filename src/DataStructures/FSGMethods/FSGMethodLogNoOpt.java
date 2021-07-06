@@ -1,14 +1,12 @@
-package DataStructures.TrajCover;
+package DataStructures.FSGMethods;
 
 import DataStructures.Reachability.Reachability;
-import Objects.GridEdge;
 import Objects.GridPoint;
 import Objects.Trajectory;
 
 import java.util.ArrayList;
-import java.util.Stack;
 
-public class TrajCoverLog extends TrajCover {
+public class FSGMethodLogNoOpt extends FSGMethod {
     GridPoint[][][] POI1;           //This structure contains all gridpoints per row (row 1) that can reach another
                                     //specified row (row 2). Usage: POI1[srow][grow][scol]
     GridPoint[][][] POI2;           //This structure contains all gridpoints per row (row 2) that can be reached from
@@ -23,18 +21,17 @@ public class TrajCoverLog extends TrajCover {
 
         //computing the closest x-coordinate on row 1 a vertex on row 2 can reach. furthestOnRow vertices that can reach
         //a row are determined vertices of interest for POI2. (O(n^3) time)
-        computeRow1Reach(POI2);
+        computeRow1Reach(POI2, false);
 
         //this bit computes all points of interest for POI1
         for (int srow = 0; srow < pointmatrix.length; srow++){
             int actualsrow = pointmatrix.length-1-srow;
             for (int grow = 0; grow < pointmatrix.length; grow++){
-                int actualgrow = pointmatrix.length-1-grow;
                 ArrayList<GridPoint> pointsOfInterest = new ArrayList<>();
                 for (int scol = 0; scol < pointmatrix[0].length; scol++){
                     GridPoint start = pointmatrix[actualsrow][scol];
                     if (start != null) {
-                        if (start.maxRow.row >= grow && (start.minOnRow == start)) {
+                        if (start.maxRow.row >= grow) {
                             pointsOfInterest.add(start);
                         }
                     }

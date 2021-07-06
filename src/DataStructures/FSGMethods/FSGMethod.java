@@ -1,4 +1,4 @@
-package DataStructures.TrajCover;
+package DataStructures.FSGMethods;
 
 import Objects.GridEdge;
 import Objects.GridPoint;
@@ -7,7 +7,7 @@ import Objects.Trajectory;
 
 import java.util.Stack;
 
-public abstract class TrajCover {
+public abstract class FSGMethod {
     GridPoint[][] pointmatrix;
     Reachability reach;
     GridPoint[][][] Row1Reach;      //This structure (row1, row2, column) takes two rows and the column of a point on
@@ -22,7 +22,6 @@ public abstract class TrajCover {
         this.pointmatrix = pointmatrix;
         this.reach = reach;
         Row1Reach = new GridPoint[pointmatrix.length][pointmatrix.length][pointmatrix[0].length];
-
         //computing extreme can be reached from vertices (minCol, minRow) (O(n^2) time)
         for (int row = 0; row < pointmatrix.length; row++){
             int actualrow = pointmatrix.length-1-row;
@@ -78,7 +77,7 @@ public abstract class TrajCover {
 
     public abstract int singleFurthestQuery(int qStart, int qEnd, int startPointIndex);
 
-    public GridPoint[][][] computeRow1Reach(GridPoint[][][] POI2){
+    public GridPoint[][][] computeRow1Reach(GridPoint[][][] POI2, boolean optimize){
         boolean doPOI = !(POI2 == null);
         for (int srow = 0; srow < pointmatrix.length; srow++){
             int actualsrow = pointmatrix.length - 1 - srow;
@@ -110,7 +109,7 @@ public abstract class TrajCover {
                         }
                         if (reach.query(start, goal)) {
                             Row1Reach[srow][grow][gcol] = start;
-                            if (goal.maxOnRow == goal) {
+                            if (goal.maxOnRow == goal || !optimize) {
                                 pointsOfInterest.push(goal);
                             }
                             gcol--;

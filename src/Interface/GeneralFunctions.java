@@ -3,6 +3,7 @@ package Interface;
 import Interface.VisualPanels.TrajectoryPanel;
 import Objects.GridPoint;
 import Objects.GridEdge;
+import Objects.NamedInt;
 import Objects.Trajectory;
 
 import javax.swing.*;
@@ -43,6 +44,40 @@ public class GeneralFunctions {
                 } else {
                     button.setEnabled(false);
                 }
+            }
+        });
+    }
+
+    public void lButtonDependency(JButton button, JTextField field, JTextField controlField,
+                                  ArrayList<JCheckBox> choiceBoxes,
+                                  Function<String, Boolean> function) {
+        field.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                doCheck();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                doCheck();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                doCheck();
+            }
+
+            private void doCheck() {
+                boolean choiceEnabled = false;
+                for (JCheckBox box: choiceBoxes){
+                    if (box.isSelected()){
+                        choiceEnabled = true;
+                    }
+                }
+                String s = controlField.getText();
+                if (function.apply(field.getText()) && function.apply(s) && !s.equals("") && choiceEnabled){
+                    button.setEnabled(true);
+                } else {button.setEnabled(false);}
             }
         });
     }
@@ -112,4 +147,56 @@ public class GeneralFunctions {
             }
         });
     }
+
+    public NamedInt getReachInfo(JCheckBox reach){
+        switch (reach.getActionCommand()) {
+            case "reachNaive" -> {
+                return new NamedInt("naive", 1);
+            }
+            default -> {
+                return new NamedInt("no", 0);
+            }
+        }
+    }
+
+    public NamedInt getAlgoInfo(JCheckBox algo){
+        switch (algo.getActionCommand()) {
+            case "algoNaivePrep" -> {
+                return new NamedInt("Naive Prep", 1);
+            }
+            case "algoLog" -> {
+                return new NamedInt("Log Query", 2);
+            }
+            case "algoNoOpt" -> {
+                return new NamedInt("Log Query (No Optimization)", 3);
+            }
+            case "algoNoPrep" -> {
+                return new NamedInt("Naive No Prep", 4);
+            }
+            case "algoNaiveLog" -> {
+                return new NamedInt("Naive Log Query", 5);
+            }
+            default -> {
+                return new NamedInt("no", 0);
+            }
+        }
+    }
+
+    public NamedInt getQueryInfo(JCheckBox query){
+        switch (query.getActionCommand()) {
+            case "queryNaive" -> {
+                return new NamedInt("naive", 1);
+            }
+            case "queryLongjump" -> {
+                return new NamedInt("Long Jump", 2);
+            }
+            default -> {
+                return new NamedInt("no", 0);
+            }
+        }
+    }
+
+
+
+
 }
