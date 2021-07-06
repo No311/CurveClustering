@@ -1,8 +1,7 @@
 package Interface.Wizards;
 
-import Interface.GeneralFunctions;
+import Methods.GeneralFunctions;
 import Interface.ListItem;
-import Interface.Tabs.GridTab;
 import Interface.Tabs.Tab;
 import Methods.SetSystemMethods;
 

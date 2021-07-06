@@ -1,12 +1,10 @@
 package Interface;
 import Algorithms.Sampling;
 import Algorithms.Simplification;
-import Interface.Tabs.GridTab;
-import Interface.Tabs.SetTab;
 import Interface.Tabs.Tab;
 import Interface.VisualPanels.TrajectoryPanel;
 import Interface.Wizards.DFDGridWizard;
-import Interface.GeneralFunctions;
+import Methods.GeneralFunctions;
 import Interface.Wizards.GreedySetWizard;
 import Interface.Wizards.SetSystemWizard;
 import Interface.Wizards.Wizard;
@@ -14,13 +12,11 @@ import Methods.SetSystemMethods;
 import Objects.Trajectory;
 
 import javax.swing.*;
-import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 public class GUIMain {
     boolean wizardCancel = false;

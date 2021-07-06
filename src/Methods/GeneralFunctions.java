@@ -1,5 +1,6 @@
-package Interface;
+package Methods;
 
+import Interface.ListItem;
 import Interface.VisualPanels.TrajectoryPanel;
 import Objects.GridPoint;
 import Objects.GridEdge;

@@ -1,6 +1,5 @@
 package Interface.Wizards;
 
-import Interface.GeneralFunctions;
 import Interface.ListItem;
 import Interface.Tabs.GridTab;
 import Interface.Tabs.Tab;

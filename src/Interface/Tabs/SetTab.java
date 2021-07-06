@@ -6,7 +6,7 @@ import Interface.ListItem;
 import Interface.VisualPanels.SetTrajectoryPanel;
 import Interface.WrapLayout;
 import Objects.Trajectory;
-import Interface.GeneralFunctions;
+import Methods.GeneralFunctions;
 import Methods.SetSystemMethods;
 
 import javax.swing.*;

@@ -1,9 +1,7 @@
 package Interface.Wizards;
 
-import Interface.GeneralFunctions;
 import Interface.ListItem;
 import Interface.Tabs.SetTab;
-import Interface.Tabs.Tab;
 import Interface.WrapLayout;
 import Methods.SetSystemMethods;
 import Objects.NamedInt;
