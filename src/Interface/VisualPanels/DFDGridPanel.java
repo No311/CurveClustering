@@ -276,6 +276,7 @@ public class DFDGridPanel extends VisualPanel {
                         queriedTC = false;
                     }
                     else if (querymode == 1){
+                        queriedTC = false;
                         if (reachquery[0] == null){
                             reachquery[0] = selected;
                             infoText.append("     Start vertex ("+selected.row+", "+selected.column+") selected. \n" +
@@ -298,6 +299,7 @@ public class DFDGridPanel extends VisualPanel {
                     }
 
                     else if (querymode == 2){
+                        queriedTC = false;
                         if (algoquery[0] == -1){
                             algoquery[0] = selected.row;
                             infoText.append("     Row "+algoquery[0]+" selected as Row 1. \n" +
