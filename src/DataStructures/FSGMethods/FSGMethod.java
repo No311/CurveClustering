@@ -77,8 +77,8 @@ public abstract class FSGMethod {
 
     public abstract int singleFurthestQuery(int qStart, int qEnd, int startPointIndex);
 
-    public GridPoint[][][] computeRow1Reach(GridPoint[][][] POI2, boolean optimize){
-        boolean doPOI = !(POI2 == null);
+    public GridPoint[][][] computeRow1Reach(GridPoint[][][] POI, boolean optimize){
+        boolean doPOI = !(POI == null);
         for (int srow = 0; srow < pointmatrix.length; srow++){
             int actualsrow = pointmatrix.length - 1 - srow;
             for (int grow = pointmatrix.length-1; grow >= srow; grow--) {
@@ -125,12 +125,12 @@ public abstract class FSGMethod {
                             POIadd[index] = pointsOfInterest.pop();
                             index++;
                         }
-                        POI2[srow][grow] = POIadd;
+                        POI[srow][grow] = POIadd;
                     }
                 }
             }
         }
-        return POI2;
+        return POI;
     }
 
     public int queryRow1Reach(int qStart, int qEnd, int endindex){
