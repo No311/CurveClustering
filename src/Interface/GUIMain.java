@@ -10,11 +10,11 @@ import Interface.Wizards.SetSystemWizard;
 import Interface.Wizards.Wizard;
 import Methods.SetSystemMethods;
 import Objects.Trajectory;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +37,10 @@ public class GUIMain {
 
     public void init(){
         //initialization
+        URL iconURL = getClass().getResource("Assets/icon128.png");
+        ImageIcon icon = new ImageIcon(iconURL);
         JFrame frame = new JFrame("CurveClustering");
+        frame.setIconImage(icon.getImage());
         JPanel backPanel = new JPanel(new BorderLayout());
         JTabbedPane mainPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
         JPanel mapPanel = new JPanel(new BorderLayout());
@@ -101,8 +104,9 @@ public class GUIMain {
         infoPanel.setBorder(BorderFactory.createEtchedBorder());
         JScrollPane infoPane = new JScrollPane(infoText);
         infoPane.getVerticalScrollBar().setUnitIncrement(32);
-        infoPane.getVerticalScrollBar().setPreferredSize(new Dimension(0,0));
+        infoPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         infoPane.setWheelScrollingEnabled(true);
+
         infoText.setEditable(false);
         infoPanel.add(infoPane);
 
@@ -205,7 +209,7 @@ public class GUIMain {
                             JScrollPane editScroll, JTextField editLabel, JPanel backPanel) {
         framewidth = frame.getWidth();
         frameheight = frame.getHeight();
-        infoText.setColumns(framewidth / 36);
+        infoText.setColumns(framewidth / 40);
         selectionScroll.setPreferredSize(new Dimension(framewidth/72, 0));
         editScroll.setPreferredSize(new Dimension(framewidth/72, 0));
         selectionLabel.setColumns(framewidth/72);

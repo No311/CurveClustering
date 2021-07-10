@@ -26,6 +26,7 @@ public class DFDGridWizard extends Wizard{
         ArrayList<JCheckBox> algoEnabled = new ArrayList<>();
 
         frame = new JFrame("DFD Grid Wizard");
+        super.init(selectionList, infoText, mainPane, interactables, gridAmount, framewidth, methods);
         JPanel backPanel = new JPanel(new BorderLayout());
         JPanel algoPanel = new JPanel(new BorderLayout());
         JPanel reachPanel = new JPanel(new BorderLayout());

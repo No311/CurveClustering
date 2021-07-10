@@ -6,6 +6,7 @@ import Interface.Tabs.Tab;
 import Methods.SetSystemMethods;
 
 import javax.swing.*;
+import java.net.URL;
 import java.util.ArrayList;
 
 public abstract class Wizard {
@@ -16,8 +17,12 @@ public abstract class Wizard {
     JFrame frame;
     ArrayList<Tab> tabs = new ArrayList<>();
 
-    abstract public void init(JList<ListItem> selection, JTextArea infoText, JTabbedPane mainPane,
-                     ArrayList<JComponent> interactables, int setAmount, int framewidth, SetSystemMethods methods);
+    public void init(JList<ListItem> selection, JTextArea infoText, JTabbedPane mainPane,
+                     ArrayList<JComponent> interactables, int setAmount, int framewidth, SetSystemMethods methods){
+        URL iconURL = getClass().getResource("../Assets/icon128.png");
+        ImageIcon icon = new ImageIcon(iconURL);
+        frame.setIconImage(icon.getImage());
+    }
 
     public ArrayList<JComponent> getInteractables() {
         return interactables;

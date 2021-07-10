@@ -27,6 +27,7 @@ public class SetSystemWizard extends Wizard{
         ArrayList<JCheckBox> choiceBoxes = new ArrayList<>();
 
         frame = new JFrame("Set System Wizard");
+        super.init(selection, infoText, mainPane, interactables, setAmount, framewidth, methods);
         JPanel backPanel = new JPanel(new BorderLayout());
         JPanel algoPanel = new JPanel(new BorderLayout());
         JPanel reachPanel = new JPanel(new BorderLayout());

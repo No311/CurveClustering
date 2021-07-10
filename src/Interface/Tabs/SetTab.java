@@ -63,22 +63,28 @@ public class SetTab extends Tab{
         visual.setOracleListeners(visual);
 
         //everything TrajectoryPanel
-        JPanel trajectoryPanel = new JPanel();
+        JPanel trajectoryPanel = new JPanel(new BorderLayout());
         trajectoryPanel.setBorder(BorderFactory.createEtchedBorder());
         String trajectoryString = "Trajectories:\n";
-        int itemcount = 0;
+        int itemcount = 1;
         for (ListItem item : selectionList.getSelectedValuesList()) {
             trajectoryString += itemcount + ": " + item.toString() + " (clone)\n";
             itemcount++;
         }
-        trajectoryString += "Threshold: " + delta;
+        trajectoryString = trajectoryString.substring(0, trajectoryString.length()-2);
+        String threshold = "Threshold: " + delta;
+        JTextArea thresholdLabel = new JTextArea(threshold);
+        thresholdLabel.setBackground(UIManager.getColor("Panel.background"));
+        thresholdLabel.setEditable(false);
+        thresholdLabel.setColumns(framewidth/72);
         JTextArea trajectoryLabel = new JTextArea(trajectoryString);
         trajectoryLabel.setBackground(UIManager.getColor("Panel.background"));
-        trajectoryLabel.setColumns(framewidth / 72);
         trajectoryLabel.setEditable(false);
         JScrollPane trajectoryLabelScroll = new JScrollPane(trajectoryLabel);
         trajectoryLabelScroll.setPreferredSize(new Dimension(0, 100));
-        trajectoryPanel.add(trajectoryLabelScroll);
+        trajectoryPanel.add(thresholdLabel, BorderLayout.PAGE_END);
+        trajectoryPanel.add(trajectoryLabelScroll, BorderLayout.CENTER);
+
 
         //Everything optionsPanel
         JPanel optionPanel = new JPanel(new WrapLayout());
@@ -86,10 +92,10 @@ public class SetTab extends Tab{
         JSlider sizeSlider = new JSlider(1, 100, 10);
         JLabel sliderLabel = new JLabel("Draw Size: 10");
         visual.sizeSliderConfig(visual, sliderLabel, sizeSlider);
-        optionPanel.add(showGridBox);
-        optionPanel.add(gridField);
-        optionPanel.add(sizeSlider);
         optionPanel.add(sliderLabel);
+        optionPanel.add(sizeSlider);
+        optionPanel.add(gridField);
+        optionPanel.add(showGridBox);
 
         //Everything QueryPanel
         JPanel queryPanel = new JPanel(new GridLayout(1, 1));
