@@ -1,20 +1,14 @@
 package Interface.VisualPanels;
 
-import DataStructures.SetSystemQuerier.SetSystemOracle;
 import Interface.ListItem;
 import Objects.Arrow;
-import Objects.GridPoint;
 import Objects.TrajPoint;
 import Objects.Trajectory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
 
 public class TrajectoryPanel extends VisualPanel{
     double startx = 0;

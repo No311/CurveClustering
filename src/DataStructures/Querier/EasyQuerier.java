@@ -1,4 +1,4 @@
-package DataStructures.SetSystemQuerier;
+package DataStructures.Querier;
 
 import DataStructures.Reachability.Reachability;
 import DataStructures.FSGMethods.QueryResult;
@@ -6,7 +6,7 @@ import DataStructures.FSGMethods.FSGMethod;
 import Objects.TrajPoint;
 import Objects.Trajectory;
 
-public class EasyQuerier extends SetSystemQuerier{
+public class EasyQuerier extends Querier {
 
     public EasyQuerier(Reachability reach, FSGMethod algo) {
         super(reach, algo);

@@ -1,7 +1,7 @@
 package Interface.Tabs;
 
 import Interface.ListItem;
-import Interface.VisualPanels.DFDGridPanel;
+import Interface.VisualPanels.FSGridPanel;
 import Interface.WrapLayout;
 import Methods.SetSystemMethods;
 
@@ -11,7 +11,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 
 public class GridTab extends Tab{
-    DFDGridPanel grid;
+    FSGridPanel grid;
     JTextArea infoText;
     ArrayList<JComponent> interactables;
     ArrayList<JComponent> localinteractables = new ArrayList<>();
@@ -44,7 +44,7 @@ public class GridTab extends Tab{
         //Initialization of grid
         JCheckBox showGridBox = new JCheckBox("Show Grid", false);
         JLabel gridField = new JLabel("Grid Size = 1");
-        grid = new DFDGridPanel(Integer.parseInt(delta),
+        grid = new FSGridPanel(Integer.parseInt(delta),
                 firstList.getSelectedValue().getT(), secondList.getSelectedValue().getT(), reach, algo, gridField,
                 showGridBox, currentField, selectedField, infoText, methods);
 
@@ -64,7 +64,7 @@ public class GridTab extends Tab{
         JPanel queryPanel = new JPanel(new GridLayout(2, 1));
         queryPanel.setBorder(BorderFactory.createEtchedBorder());
         JButton queryReach = new JButton("<html><center>Query<br>Reachability<br>Oracle</center></html>");
-        JButton queryAlgo = new JButton("<html><center>Query<br>Trajectory Coverage<br>Oracle</center></html>");
+        JButton queryAlgo = new JButton("<html><center>Query<br>Free Space Grid Method<br>Oracle</center></html>");
         if (reach == 0){
             queryReach.setEnabled(false);
             queryReach.setText("<html><center>Reachability<br>Not Prepared</center></html>");
@@ -74,7 +74,7 @@ public class GridTab extends Tab{
         }
         if (algo == 0){
             queryAlgo.setEnabled(false);
-            queryAlgo.setText("<html><center>Trajectory Coverage<br>Not Prepared</center></html>");
+            queryAlgo.setText("<html><center>Free Space Grid Method<br>Not Prepared</center></html>");
         } else {
             interactables.add(queryAlgo);
             localinteractables.add(queryAlgo);
@@ -103,7 +103,7 @@ public class GridTab extends Tab{
                 grid.setQuerymode(2);
                 infoText.append("Tab " + tabnumber +":\n");
                 infoText.append("""
-                        Query Trajectory Cover Started:
+                        Query Free Space Grid Method Started:
                         (To cancel, press the right mouse button.)
                              Please select a vertex from 
                                   the first row...
@@ -148,13 +148,13 @@ public class GridTab extends Tab{
         //dealing with interactables
         this.interactables = interactables;
 
-        setTitle("DFD Grid " + gridAmount);
+        setTitle("Free Space Grid " + gridAmount);
         mainPane.addTab(title, gridPanel);
         long endtime = System.currentTimeMillis();
         double time = ((double) endtime - (double) starttime)/1000;
-        infoText.append("DFD Grid "+gridAmount+" created between\n     " + firsttraj + " and " + secondtraj + ",\n" +
+        infoText.append("Free Space Grid "+gridAmount+" created between\n     " + firsttraj + " and " + secondtraj + ",\n" +
                 "     with threshold "+delta+",\n     "+reachString+" reachability and\n     "
-                +algoString+" data structure.\n     Time Total: "+time+" seconds.\n     " +
+                +algoString+" FSG Method.\n     Time Total: "+time+" seconds.\n     " +
                 "Time Reachability Init: "+grid.reachinittime+"\n     Time Data Structure init: "+grid.algoinittime+"\n\n");
 
         return interactables;

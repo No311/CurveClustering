@@ -3,10 +3,10 @@ import Algorithms.Sampling;
 import Algorithms.Simplification;
 import Interface.Tabs.Tab;
 import Interface.VisualPanels.TrajectoryPanel;
-import Interface.Wizards.DFDGridWizard;
+import Interface.Wizards.FSGridWizard;
 import Methods.GeneralFunctions;
 import Interface.Wizards.GreedySetWizard;
-import Interface.Wizards.SetSystemWizard;
+import Interface.Wizards.OracleWizard;
 import Interface.Wizards.Wizard;
 import Methods.SetSystemMethods;
 import Objects.Trajectory;
@@ -114,7 +114,7 @@ public class GUIMain {
         JLabel muLabel = new JLabel("mu");
         JTextField muField = new JTextField("");
         muField.setColumns(3);
-        JLabel sampleLabel = new JLabel("points:");
+        JLabel sampleLabel = new JLabel("vertices:");
         JButton simplifyButton = new JButton("Simplify");
         simplifyButton.setEnabled(false);
         JTextField sampleField = new JTextField("");
@@ -393,7 +393,7 @@ public class GUIMain {
         JMenuItem open = new JMenuItem("Open Trajectories...");
         JMenuItem save = new JMenuItem("Save Trajectories...");
         JMenuItem close = new JMenuItem("Close Trajectories");
-        JMenuItem DFDGrid = new JMenuItem("Create DFD Grid");
+        JMenuItem FSGrid = new JMenuItem("Create Free Space Grid");
         JMenuItem SetSys = new JMenuItem("Initialize Set System");
         JMenuItem GSC = new JMenuItem("Do Greedy Set Cover");
         JMenuItem closeTab = new JMenuItem("Close Tab");
@@ -404,7 +404,7 @@ public class GUIMain {
         open.addActionListener(e -> {
             FileDialog fd = new FileDialog(new JFrame(), "Open Trajectories...", FileDialog.LOAD);
             fd.setMultipleMode(true);
-            fd.setFilenameFilter((dir, name) -> name.matches(".+\\.txt") || name.matches(".+\\.gpx"));
+            fd.setFilenameFilter((dir, name) -> name.matches(".+\\.txt"));
             fd.setVisible(true);
             File[] files = fd.getFiles();
             if (!(files.length == 0)) {
@@ -457,18 +457,18 @@ public class GUIMain {
                 frame.requestFocus();
             }
         });
-        DFDGrid.addActionListener(e -> {
-            infoText.append("Creating DFD Grid...\n");
+        FSGrid.addActionListener(e -> {
+            infoText.append("Creating Free Space Grid...\n");
             if (selectionList.getModel().getSize() == 0){
-                infoText.append("No Trajectories open to create \nDFD Grid from.\n\n");
+                infoText.append("No Trajectories open to create \nFree Space Grid from.\n\n");
             } else{
                 initWizard(selectionList, infoText, mainPane, 0);
             }
         });
         SetSys.addActionListener(e -> {
-            infoText.append("Creating Set System...\n");
+            infoText.append("Creating Set System Oracle...\n");
             if (selectionList.getModel().getSize() == 0){
-                infoText.append("No Trajectories open to create \nDFD Grid from.\n\n");
+                infoText.append("No Trajectories open to create \nSet System Oracle from.\n\n");
             } else{
                 initWizard(selectionList, infoText, mainPane, 1);
             }
@@ -504,7 +504,7 @@ public class GUIMain {
         menu.add(open);
         menu.add(save);
         menu.add(close);
-        menu.add(DFDGrid);
+        menu.add(FSGrid);
         menu.add(SetSys);
         menu.add(GSC);
         menu.add(closeTab);
@@ -518,7 +518,11 @@ public class GUIMain {
         gF.disable(interactables);
         Wizard wizard = getWizard(which);
         assert wizard != null;
-        wizard.init(selectionList, infoText, mainPane, interactables, gridAmount, framewidth, methods);
+        if (which == 0) {
+            wizard.init(selectionList, infoText, mainPane, interactables, gridAmount, framewidth, methods);
+        } else {
+            wizard.init(selectionList, infoText, mainPane, interactables, setAmount, framewidth, methods);
+        }
         wizard.getFrame().addWindowListener(new WindowAdapter()
         {
             @Override
@@ -528,7 +532,11 @@ public class GUIMain {
                     infoText.append("Process cancelled.\n\n");
                 }
                 gF.enable(interactables);
-                gridAmount = wizard.getAmount();
+                if (which == 0) {
+                    gridAmount = wizard.getAmount();
+                } else if (which == 1){
+                    setAmount = wizard.getAmount();
+                }
                 interactables = wizard.getInteractables();
                 tabs.addAll(wizard.getTabs());
                 e.getWindow().dispose();
@@ -539,10 +547,10 @@ public class GUIMain {
     private Wizard getWizard(int which) {
         switch (which){
             case 0 -> {
-                return new DFDGridWizard();
+                return new FSGridWizard();
             }
             case 1 -> {
-                return new SetSystemWizard();
+                return new OracleWizard();
             }
             case 2 -> {
                 return new GreedySetWizard();

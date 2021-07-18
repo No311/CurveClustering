@@ -1,12 +1,11 @@
 package Algorithms;
 
-import DataStructures.SetSystemQuerier.OracleResult;
-import DataStructures.SetSystemQuerier.SetSystemOracle;
+import DataStructures.Querier.OracleResult;
+import DataStructures.Querier.SetSystemOracle;
 import Objects.TrajPoint;
 import Objects.Trajectory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class GreedySetCover {
 

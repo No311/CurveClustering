@@ -9,7 +9,6 @@ public class FSGMethodQueryNaive extends FSGMethod {
                                    //that the gridpoint at coordinates (row1, column) can reach.
     GridPoint[][][] queries; //queries[row1][row2][p] gives a gridpoint with the farthest distance between its
                              //furthestReach gridpoint and it in x-direction that fulfills the query.
-    GridPoint[][] pointmatrix;
 
 
 

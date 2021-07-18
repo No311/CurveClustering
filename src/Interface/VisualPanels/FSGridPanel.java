@@ -13,7 +13,7 @@ import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class DFDGridPanel extends VisualPanel {
+public class FSGridPanel extends VisualPanel {
     private int threshold;
     private Trajectory first;
     private Trajectory second;
@@ -23,7 +23,7 @@ public class DFDGridPanel extends VisualPanel {
     JLabel currentCoord;
     JLabel selectedCoord;
     JTextArea infoText;
-    DFDGrid GridObject;
+    FSGrid GridObject;
     private GridPoint[][] pointmatrix;
     private int rowmax;
     private ArrayList<GridEdge> edges = new ArrayList<>();
@@ -47,9 +47,9 @@ public class DFDGridPanel extends VisualPanel {
     final Color queryRow2Color = new Color(100, 133, 97);
 
 
-    public DFDGridPanel(int threshold, Trajectory first, Trajectory second, int reach, int algo,
-                        JLabel gridField, JCheckBox showGridBox, JLabel currentCoord, JLabel selectedCoord,
-                        JTextArea infoText, SetSystemMethods methods) {
+    public FSGridPanel(int threshold, Trajectory first, Trajectory second, int reach, int algo,
+                       JLabel gridField, JCheckBox showGridBox, JLabel currentCoord, JLabel selectedCoord,
+                       JTextArea infoText, SetSystemMethods methods) {
         super();
         super.setZoomable(true);
         super.setShowGrid(false);
@@ -66,7 +66,7 @@ public class DFDGridPanel extends VisualPanel {
     }
 
     private void initDFDGrid(SetSystemMethods methods, int reachInt, int algoInt) {
-        GridObject = new DFDGrid(first, second, threshold, getStandardDist(), size);
+        GridObject = new FSGrid(first, second, threshold, getStandardDist(), size);
         pointmatrix = GridObject.getPointsMatrix();
         pointlist = GridObject.getPointList();
         edges = GridObject.getEdgesList();
@@ -313,7 +313,7 @@ public class DFDGridPanel extends VisualPanel {
                         else if (algoquery[2] == -1) {
                             algoquery[2] = selected.column;
                             infoText.append("     Column " + algoquery[2] + " selected as Column P. \n" +
-                                    "     Querying Trajectory Cover Oracle...\n");
+                                    "     Querying Free Space Grid Method Oracle...\n");
                             long starttime = System.currentTimeMillis();
                             QueryResult result = algodata.query(algoquery[0], algoquery[1], algoquery[2]);
                             long endtime = System.currentTimeMillis();

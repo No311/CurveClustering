@@ -1,7 +1,7 @@
 package Interface.Tabs;
 
 import Algorithms.GreedySetCover;
-import DataStructures.SetSystemQuerier.*;
+import DataStructures.Querier.*;
 import Interface.ListItem;
 import Interface.VisualPanels.SetTrajectoryPanel;
 import Interface.WrapLayout;
@@ -15,7 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-public class SetTab extends Tab{
+public class OracleTab extends Tab{
     SetTrajectoryPanel visual;
     JTextArea infoText;
     ArrayList<JComponent> interactables;
@@ -29,9 +29,9 @@ public class SetTab extends Tab{
                                       String methodString, int reachInt, int algoInt, int queryInt,
                                       String reachString, String algoString, String queryString,
                                       int amount, ArrayList<JComponent> interactables, SetSystemMethods methods) {
-        infoText.append("     Initializing Set System Tab " + amount + "\n     Using the " + methodString + " method...\n");
+        infoText.append("     Initializing Set System Oracle Tab " + amount + "\n     Using the " + methodString + " method...\n");
         if (method == 1) {
-            infoText.append("     Using " + reachString + " reachability, \n     the " + algoString + " queriable and \n" +
+            infoText.append("     Using " + reachString + " reachability, \n     the " + algoString + " FSG Method and \n" +
                     "     the " + queryString + " query method...\n");
         }
         long tabstarttime = System.currentTimeMillis();
@@ -167,11 +167,11 @@ public class SetTab extends Tab{
         setPanel.add(bottomPanel, BorderLayout.PAGE_END);
         //dealing with interactables
         this.interactables = interactables;
-        setTitle("Set System " + amount);
+        setTitle("Oracle " + amount);
         mainPane.addTab(title, setPanel);
         long tabendtime = System.currentTimeMillis();
         double time = ((double) tabendtime - (double) tabstarttime) / 1000;
-        infoText.append("\u2794 Set System Tab " + amount + " initialized in " + time + " seconds.\n\n");
+        infoText.append("\u2794 Set System Oracle Tab " + amount + " initialized in " + time + " seconds.\n\n");
         infoText.repaint();
         return interactables;
     }

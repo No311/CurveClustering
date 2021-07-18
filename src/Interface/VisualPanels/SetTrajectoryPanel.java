@@ -1,7 +1,7 @@
 package Interface.VisualPanels;
 
-import DataStructures.SetSystemQuerier.OracleResult;
-import DataStructures.SetSystemQuerier.SetSystemOracle;
+import DataStructures.Querier.OracleResult;
+import DataStructures.Querier.SetSystemOracle;
 import Objects.Arrow;
 import Objects.TrajPoint;
 import Objects.Trajectory;
@@ -10,10 +10,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Line2D;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Comparator;
 
 public class SetTrajectoryPanel extends TrajectoryPanel {
     private ArrayList<SetSystemOracle> oracles;
@@ -120,9 +117,7 @@ public class SetTrajectoryPanel extends TrajectoryPanel {
                     }
                 }
                 if (selected != null) {
-                    if (!shiftPressed) {
-                        doFirstSelection(selected, selectedT);
-                    } else {
+                    if (shiftPressed){
                         if (lastResult == null || lastResult.getFirst() != selectedT) {
                             doFirstSelection(selected, selectedT);
                         } else {
@@ -144,6 +139,30 @@ public class SetTrajectoryPanel extends TrajectoryPanel {
                             result.setSelected(true);
                             lastResult = result;
                         }
+                    } else if (altPressed) {
+                        if (lastResult == null || lastResult.getFirst() != selectedT) {
+                            doFirstSelection(selected, selectedT);
+                        } else {
+                            SetSystemOracle oracle = oracles.get(0);
+                            for (SetSystemOracle o: oracles){
+                                if (selectedT == o.getFirst()){
+                                    oracle = o;
+                                }
+                            }
+                            OracleResult result;
+                            if (lastResult.getSubTrajEnd().index < selected.index) {
+                                result = oracle.getCoveredBySub(lastResult.getSubTrajStart().index, selected.index);
+                            } else {
+                                result = oracle.getCoveredBySub(selected.index, lastResult.getSubTrajEnd().index);
+                            }
+                            selectedResults.remove(lastResult);
+                            selectedResults.add(result);
+                            lastResult.setSelected(false);
+                            result.setSelected(true);
+                            lastResult = result;
+                        }
+                    } else {
+                        doFirstSelection(selected, selectedT);
                     }
                     setSelection();
                     map.repaint();

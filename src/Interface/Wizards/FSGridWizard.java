@@ -12,7 +12,7 @@ import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 
-public class DFDGridWizard extends Wizard{
+public class FSGridWizard extends Wizard{
 
 
     @Override
@@ -25,7 +25,7 @@ public class DFDGridWizard extends Wizard{
         ArrayList<JCheckBox> reachEnabled = new ArrayList<>();
         ArrayList<JCheckBox> algoEnabled = new ArrayList<>();
 
-        frame = new JFrame("DFD Grid Wizard");
+        frame = new JFrame("FS Grid Wizard");
         super.init(selectionList, infoText, mainPane, interactables, gridAmount, framewidth, methods);
         JPanel backPanel = new JPanel(new BorderLayout());
         JPanel algoPanel = new JPanel(new BorderLayout());
@@ -79,12 +79,12 @@ public class DFDGridWizard extends Wizard{
         JCheckBox logAlgo = new JCheckBox("Log Query", false);
         JCheckBox noOptAlgo = new JCheckBox("Log Query (No Opt)", false);
         JCheckBox noPrepAlgo = new JCheckBox("Naive No Prep", false);
-        JCheckBox naiveQueryAlgo = new JCheckBox("Naive Log Query", false);
+        JCheckBox naiveQueryAlgo = new JCheckBox("Naive Query", false);
         naivePrepAlgo.setActionCommand("algoNaivePrep");
         logAlgo.setActionCommand("algoLog");
         noOptAlgo.setActionCommand("algoNoOpt");
         noPrepAlgo.setActionCommand("algoNoPrep");
-        naiveQueryAlgo.setActionCommand("algoNaiveLog");
+        naiveQueryAlgo.setActionCommand("algoNaiveQuery");
         algoCheckBoxInit(naivePrepAlgo, algoBoxes, algoEnabled);
         algoCheckBoxInit(logAlgo, algoBoxes, algoEnabled);
         algoCheckBoxInit(noPrepAlgo, algoBoxes, algoEnabled);
@@ -100,7 +100,7 @@ public class DFDGridWizard extends Wizard{
 
 
         //Everything ButtonPanel
-        JButton confirm = new JButton("Create DFDGrid");
+        JButton confirm = new JButton("Create Free Space Grid");
         JLabel deltaLabel = new JLabel("thresholds (separated by comma): ");
         JTextField deltaField = new JTextField("");
         deltaField.setEditable(false);

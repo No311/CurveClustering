@@ -1,4 +1,4 @@
-package DataStructures.SetSystemQuerier;
+package DataStructures.Querier;
 
 import DataStructures.Reachability.Reachability;
 import DataStructures.FSGMethods.FSGMethod;

@@ -1,7 +1,7 @@
 package Interface.Wizards;
 
 import Interface.ListItem;
-import Interface.Tabs.SetTab;
+import Interface.Tabs.OracleTab;
 import Interface.WrapLayout;
 import Methods.SetSystemMethods;
 import Objects.NamedInt;
@@ -11,7 +11,8 @@ import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 
-public class SetSystemWizard extends Wizard{
+public class OracleWizard extends Wizard{
+    String name = "Set System Oracle Wizard";
     @Override
     public void init(JList<ListItem> selection, JTextArea infoText, JTabbedPane mainPane,
                      ArrayList<JComponent> interactables, int setAmount, int framewidth, SetSystemMethods methods){
@@ -25,8 +26,9 @@ public class SetSystemWizard extends Wizard{
         ArrayList<JCheckBox> queryEnabled = new ArrayList<>();
         ArrayList<JCheckBox> NaiveBoxes = new ArrayList<>();
         ArrayList<JCheckBox> choiceBoxes = new ArrayList<>();
+        ArrayList<JCheckBox> allBoxes = new ArrayList<>();
 
-        frame = new JFrame("Set System Wizard");
+        frame = new JFrame(name);
         super.init(selection, infoText, mainPane, interactables, setAmount, framewidth, methods);
         JPanel backPanel = new JPanel(new BorderLayout());
         JPanel algoPanel = new JPanel(new BorderLayout());
@@ -69,6 +71,7 @@ public class SetSystemWizard extends Wizard{
                 BorderFactory.createLineBorder(Color.BLACK),"Naive Method"));
         JCheckBox nMethodBox = new JCheckBox("Use the Naive Method");
         nMethodBox.setHorizontalAlignment(SwingConstants.CENTER);
+        allBoxes.add(nMethodBox);
         choiceBoxes.add(nMethodBox);
         NaivePanel.add(nMethodBox);
 
@@ -89,12 +92,12 @@ public class SetSystemWizard extends Wizard{
         JCheckBox logAlgo = new JCheckBox("Log Query", false);
         JCheckBox noOptAlgo = new JCheckBox("Log Query (No Opt)", false);
         JCheckBox noPrepAlgo = new JCheckBox("Naive No Prep", false);
-        JCheckBox naiveQueryAlgo = new JCheckBox("Naive Log Query", false);
+        JCheckBox naiveQueryAlgo = new JCheckBox("Naive Query", false);
         naivePrepAlgo.setActionCommand("algoNaivePrep");
         logAlgo.setActionCommand("algoLog");
         noOptAlgo.setActionCommand("algoNoOpt");
         noPrepAlgo.setActionCommand("algoNoPrep");
-        naiveQueryAlgo.setActionCommand("algoNaiveLog");
+        naiveQueryAlgo.setActionCommand("algoNaiveQuery");
         algoCheckBoxInit(naivePrepAlgo, algoBoxes, queryBoxes, algoEnabled, queryEnabled);
         algoCheckBoxInit(logAlgo, algoBoxes, queryBoxes, algoEnabled, queryEnabled);
         algoCheckBoxInit(noOptAlgo, algoBoxes, queryBoxes, algoEnabled, queryEnabled);
@@ -133,17 +136,17 @@ public class SetSystemWizard extends Wizard{
         DFDOptionsPanel.setBorder(BorderFactory.createEtchedBorder());
 
         //Everything DFDMainPanel
-        JCheckBox DFDMethodBox = new JCheckBox("Use the DFD Method");
+        JCheckBox FSGMethodBox = new JCheckBox("Use Free Space Grid Methods");
         ArrayList<ArrayList<JCheckBox>> dependlist = new ArrayList<>();
         dependlist.add(reachBoxes);
         dependlist.add(algoBoxes);
         dependlist.add(queryBoxes);
         ArrayList<ArrayList<JCheckBox>> enablelist = new ArrayList<>();
         enablelist.add(reachBoxes);
-        methodCheckBoxInit(DFDMethodBox, enablelist, dependlist);
+        methodCheckBoxInit(FSGMethodBox, enablelist, dependlist);
         choiceBoxes.addAll(queryBoxes);
-        DFDMethodBox.setHorizontalAlignment(SwingConstants.CENTER);
-        DFDMainPanel.add(DFDMethodBox);
+        FSGMethodBox.setHorizontalAlignment(SwingConstants.CENTER);
+        DFDMainPanel.add(FSGMethodBox);
         DFDMainPanel.setBorder(BorderFactory.createEtchedBorder());
 
         //Everything DFDMethod
@@ -166,11 +169,15 @@ public class SetSystemWizard extends Wizard{
         ArrayList<JTextField> buttonFields = initButtonsPanel(buttonPanel, confirm, choiceBoxes);
         confirm.setEnabled(false);
         buttonPanel.add(confirm);
+        allBoxes.add(FSGMethodBox);
+        allBoxes.addAll(reachBoxes);
+        allBoxes.addAll(algoBoxes);
+        allBoxes.addAll(queryBoxes);
         gF.buttonChoiceDependency(confirm, buttonFields.get(0), (String s) -> !s.equals("") && s.matches("^[\\d\\s,]*$"),
-                choiceBoxes);
+                choiceBoxes, FSGMethodBox, queryBoxes, allBoxes);
         ConfirmActionListener(infoText, mainPane, framewidth,
                 methods, reachEnabled, algoEnabled, queryEnabled,
-                NaiveBoxes, selectionList, nMethodBox, DFDMethodBox,
+                NaiveBoxes, selectionList, nMethodBox, FSGMethodBox,
                 buttonFields, confirm);
 
 
@@ -203,7 +210,7 @@ public class SetSystemWizard extends Wizard{
     }
 
     ArrayList<JTextField> initButtonsPanel(JPanel buttonPanel, JButton confirm, ArrayList<JCheckBox> choiceBoxes){
-        confirm.setText("Initialize Set System");
+        confirm.setText("Initialize Set System Oracle");
         ArrayList<JTextField> result = new ArrayList<>();
         JLabel deltaLabel = new JLabel("thresholds (separated by comma): ");
         JTextField deltaField = new JTextField("");
@@ -255,11 +262,11 @@ public class SetSystemWizard extends Wizard{
                                 }
                             }
                         } else {
-                            infoText.append("Set System could not be created:\n no algorithm selected.\n\n");
+                            infoText.append("Set System Oracle could not be created:\n no algorithm selected.\n\n");
                         }
                     }
                 } else {
-                    infoText.append("Set System could not be created:\n no reachability selected.\n\n");
+                    infoText.append("Set System Oracle could not be created:\n no reachability selected.\n\n");
                 }
             }
         }
@@ -271,23 +278,23 @@ public class SetSystemWizard extends Wizard{
     void initiateFSG(JList<ListItem> selectionList, JTabbedPane mainPane, JTextArea infoText, int framewidth,
                      SetSystemMethods methods, String methodString, int method, String delta, NamedInt reachInfo,
                      NamedInt algoInfo, NamedInt queryInfo, ArrayList<JTextField> buttonFields) {
-        SetTab newSetTab = new SetTab();
-        interactables = newSetTab.init(delta, selectionList, framewidth, mainPane,
+        OracleTab newOracleTab = new OracleTab();
+        interactables = newOracleTab.init(delta, selectionList, framewidth, mainPane,
                 infoText, method, methodString, reachInfo.number, algoInfo.number, queryInfo.number,
                 reachInfo.name, algoInfo.name, queryInfo.name, amount, interactables, methods);
         amount++;
-        tabs.add(newSetTab);
+        tabs.add(newOracleTab);
     }
 
     void initiateNaive(JList<ListItem> selectionList, JTabbedPane mainPane, JTextArea infoText,
                        int framewidth, SetSystemMethods methods, String methodString, int method, String delta,
                        ArrayList<JTextField> buttonFields) {
-        SetTab newSetTab = new SetTab();
-        interactables = newSetTab.init(delta, selectionList, framewidth, mainPane,
+        OracleTab newOracleTab = new OracleTab();
+        interactables = newOracleTab.init(delta, selectionList, framewidth, mainPane,
                 infoText, method, methodString, -1, -1, -1, "",
                 "", "", amount, interactables, methods);
         amount++;
-        tabs.add(newSetTab);
+        tabs.add(newOracleTab);
     }
 
     private void methodCheckBoxInit(JCheckBox methodEnableBox, ArrayList<ArrayList<JCheckBox>> enableBoxes,

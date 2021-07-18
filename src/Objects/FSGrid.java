@@ -7,7 +7,7 @@ import Objects.Trajectory;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-public class DFDGrid {
+public class FSGrid {
     private final GridPoint[][] pointsMatrix;
     private final GridPoint[][] pointsMatrixSwap;
     private ArrayList<GridPoint> pointList = new ArrayList<>();
@@ -18,7 +18,7 @@ public class DFDGrid {
     private final int columnmax;
     private int threshold;
 
-    public DFDGrid(Trajectory first, Trajectory second, int threshold, double standardDist, int size) {
+    public FSGrid(Trajectory first, Trajectory second, int threshold, double standardDist, int size) {
         this.first = first;
         this.second = second;
         this.rowmax = first.getPoints().size()-1;
@@ -69,8 +69,8 @@ public class DFDGrid {
         this.pointsMatrixSwap = matrixswap;
     }
 
-    public DFDGrid(Trajectory first, Trajectory second, int threshold,
-                   GridPoint[][] matrix, GridPoint[][] matrixswap) {
+    public FSGrid(Trajectory first, Trajectory second, int threshold,
+                  GridPoint[][] matrix, GridPoint[][] matrixswap) {
         this.first = first;
         this.second = second;
         this.rowmax = first.getPoints().size()-1;

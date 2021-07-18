@@ -1,11 +1,8 @@
-package DataStructures.SetSystemQuerier;
+package DataStructures.Querier;
 
-import Objects.TrajPoint;
 import Objects.Trajectory;
 
-import java.awt.*;
 import java.awt.geom.Point2D;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class ExtremelyNaiveQuerier {

@@ -1,11 +1,7 @@
 package Methods;
 
 import Interface.ListItem;
-import Interface.VisualPanels.TrajectoryPanel;
-import Objects.GridPoint;
-import Objects.GridEdge;
 import Objects.NamedInt;
-import Objects.Trajectory;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -14,7 +10,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
 
 public class GeneralFunctions {
@@ -96,28 +91,29 @@ public class GeneralFunctions {
     }
 
     public void buttonChoiceDependency(JButton button, JTextField field, Function<String, Boolean> function,
-                                       ArrayList<JCheckBox> choiceBoxes) {
+                                       ArrayList<JCheckBox> choiceBoxes, JCheckBox FSGBox, ArrayList<JCheckBox> queryBoxes,
+                                       ArrayList<JCheckBox> boxes) {
         field.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                doTheActionListener(choiceBoxes, field, function, button);
+                doTheActionListener(choiceBoxes, field, function, button, FSGBox, queryBoxes);
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                doTheActionListener(choiceBoxes, field, function, button);
+                doTheActionListener(choiceBoxes, field, function, button, FSGBox, queryBoxes);
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                doTheActionListener(choiceBoxes, field, function, button);
+                doTheActionListener(choiceBoxes, field, function, button, FSGBox, queryBoxes);
             }
         });
-        for (JCheckBox box: choiceBoxes){
+        for (JCheckBox box: boxes){
             box.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    doTheActionListener(choiceBoxes, field, function, button);
+                    doTheActionListener(choiceBoxes, field, function, button, FSGBox, queryBoxes);
                 }
             });
         }
@@ -125,7 +121,8 @@ public class GeneralFunctions {
     }
 
     public void doTheActionListener(ArrayList<JCheckBox> choiceBoxes, JTextField field,
-                                    Function<String, Boolean> function, JButton button) {
+                                    Function<String, Boolean> function, JButton button, JCheckBox FSGBox,
+                                    ArrayList<JCheckBox> queryBoxes) {
         boolean choiceEnabled = false;
         for (JCheckBox box: choiceBoxes){
             if (box.isSelected()){
@@ -136,6 +133,17 @@ public class GeneralFunctions {
             button.setEnabled(true);
         } else {
             button.setEnabled(false);
+        }
+        if (FSGBox.isSelected()){
+            boolean querySelected = false;
+            for (JCheckBox q: queryBoxes){
+                if (q.isSelected()){
+                    querySelected = true;
+                }
+            }
+            if (!querySelected){
+                button.setEnabled(false);
+            }
         }
     }
 
@@ -174,8 +182,8 @@ public class GeneralFunctions {
             case "algoNoPrep" -> {
                 return new NamedInt("Naive No Prep", 4);
             }
-            case "algoNaiveLog" -> {
-                return new NamedInt("Naive Log Query", 5);
+            case "algoNaiveQuery" -> {
+                return new NamedInt("Naive Query", 5);
             }
             default -> {
                 return new NamedInt("no", 0);

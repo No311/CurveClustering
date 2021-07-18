@@ -1,15 +1,15 @@
-package DataStructures.SetSystemQuerier;
+package DataStructures.Querier;
 
 import DataStructures.Reachability.Reachability;
 import DataStructures.FSGMethods.FSGMethod;
 import Objects.TrajPoint;
 import Objects.Trajectory;
 
-public abstract class SetSystemQuerier {
+public abstract class Querier {
     Reachability reach;
     FSGMethod algo;
 
-    public SetSystemQuerier(Reachability reach, FSGMethod algo){
+    public Querier(Reachability reach, FSGMethod algo){
         this.reach = reach;
         this.algo = algo;
     }

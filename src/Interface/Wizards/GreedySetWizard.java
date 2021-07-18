@@ -1,8 +1,8 @@
 package Interface.Wizards;
 
 import Algorithms.GreedySetCover;
-import DataStructures.SetSystemQuerier.OracleResult;
-import DataStructures.SetSystemQuerier.SetSystemOracle;
+import DataStructures.Querier.OracleResult;
+import DataStructures.Querier.SetSystemOracle;
 import Interface.ListItem;
 import Methods.SetSystemMethods;
 import Objects.NamedInt;
@@ -12,7 +12,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 
-public class GreedySetWizard extends SetSystemWizard{
+public class GreedySetWizard extends OracleWizard {
+    @Override
+    public void init(JList<ListItem> selection, JTextArea infoText, JTabbedPane mainPane,
+                     ArrayList<JComponent> interactables, int setAmount, int framewidth, SetSystemMethods methods){
+        name = "Greedy Set Cover Wizard";
+        super.init(selection, infoText, mainPane, interactables, setAmount, framewidth, methods);
+    }
+
     @Override
     ArrayList<JTextField> initButtonsPanel(JPanel buttonPanel, JButton confirm, ArrayList choiceBoxes){
         confirm.setText("Do Greedy Set Cover");
@@ -50,44 +57,46 @@ public class GreedySetWizard extends SetSystemWizard{
     void initiateNaive(JList<ListItem> selectionList, JTabbedPane mainPane, JTextArea infoText,
                        int framewidth, SetSystemMethods methods, String methodString, int method, String delta,
                        ArrayList<JTextField> buttonFields) {
-        infoText.append("Doing Greedy Set Cover\n     Using the " + methodString + " method...\n");
+        infoText.append("Doing Greedy Set Cover with threshold "+delta+"\n     Using the " + methodString + " method...\n");
+        long starttime = System.currentTimeMillis();
         ArrayList<Trajectory> selection = getTrajectories(selectionList);
         ArrayList<SetSystemOracle> oracles = methods.initSetSystem(method, Integer.parseInt(delta),
                 -1, -1,-1,selection);
-        doGreedySetCover(infoText, buttonFields, selection, oracles);
+        long endtime = System.currentTimeMillis();
+        long totalTime = endtime-starttime;
+        double time = ((double) endtime - (double) starttime) / 1000;
+        infoText.append("Method Initialized in " + time + " seconds.\n");
+        initGreedySetCover(infoText, buttonFields, selection, oracles, methods, totalTime);
     }
 
     @Override
     void initiateFSG(JList<ListItem> selectionList, JTabbedPane mainPane, JTextArea infoText, int framewidth,
                      SetSystemMethods methods, String methodString, int method, String delta, NamedInt reachInfo,
                      NamedInt algoInfo, NamedInt queryInfo, ArrayList<JTextField> buttonFields) {
-        infoText.append("Doing Greedy Set Cover\n     Using the " + methodString + " method...\n");
+        infoText.append("Doing Greedy Set Cover with threshold "+delta+"\n     Using the " + methodString + " method...\n");
+        long starttime = System.currentTimeMillis();
         if (method == 1) {
-            infoText.append("     Using " + reachInfo.name + " reachability, \n     the " + algoInfo.name + " queriable and \n" +
+            infoText.append("     Using " + reachInfo.name + " reachability, \n     the " + algoInfo.name + " FSG Method and \n" +
                     "     the " + queryInfo.name + " query method...\n");
         }
         ArrayList<Trajectory> selection = getTrajectories(selectionList);
         ArrayList<SetSystemOracle> oracles = methods.initSetSystem(method, Integer.parseInt(delta),
                 reachInfo.number, algoInfo.number, queryInfo.number, selection);
-        doGreedySetCover(infoText, buttonFields, selection, oracles);
+        long endtime = System.currentTimeMillis();
+        long totalTime = endtime-starttime;
+        double time = ((double) endtime - (double) starttime) / 1000;
+        infoText.append("Method Initialized in " + time + " seconds.\n");
+        infoText.append("Doing Greedy Set Cover\n     Using the " + methodString + " method...\n");
+
+        initGreedySetCover(infoText, buttonFields, selection, oracles, methods, totalTime);
     }
 
-    private void doGreedySetCover(JTextArea infoText, ArrayList<JTextField> buttonFields, ArrayList<Trajectory> selection, ArrayList<SetSystemOracle> oracles) {
-        GreedySetCover g = new GreedySetCover();
-        infoText.append("Greedy Set Cover Started.\n");
-        long starttime = System.currentTimeMillis();
+    private void initGreedySetCover(JTextArea infoText, ArrayList<JTextField> buttonFields,
+                                    ArrayList<Trajectory> selection, ArrayList<SetSystemOracle> oracles,
+                                    SetSystemMethods methods, long totalTime) {
         int lMin = getLMin(buttonFields);
         int lMax = getLMax(buttonFields);
-        ArrayList<OracleResult> GSCResult = g.doGreedySetCover(selection, oracles, lMin, lMax);
-        long endtime = System.currentTimeMillis();
-        double time = ((double) endtime - (double) starttime) / 1000;
-        infoText.append("Greedy Set Cover Completed in " + time + " seconds.\n" +
-                "     Results:\n");
-        for (OracleResult r: GSCResult){
-            infoText.append("     Subtrajectory ("+r.getSubTrajStart().index+", "+r.getSubTrajEnd().index+") from" +
-                    " Trajectory "+r.getFirst().getName()+"\n");
-        }
-        infoText.append("\n");
+        methods.doGreedySetCover(infoText, selection, oracles, lMin, lMax, totalTime);
     }
 
 

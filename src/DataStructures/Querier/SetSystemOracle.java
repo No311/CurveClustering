@@ -1,6 +1,5 @@
-package DataStructures.SetSystemQuerier;
+package DataStructures.Querier;
 
-import Objects.TrajPoint;
 import Objects.Trajectory;
 
 import java.util.ArrayList;
